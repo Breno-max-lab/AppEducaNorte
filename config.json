@@ -1,0 +1,19 @@
+{
+  "_comentario": "Edite este arquivo para configurar o EducaNorte. Não compartilhe com ninguém.",
+
+  "senha_professor": "professor123",
+  "secret_key": "troque-esta-chave-por-algo-secreto-2026",
+
+  "servidor": {
+    "host": "0.0.0.0",
+    "porta": 5000,
+    "threads": 8
+  },
+
+  "ia": {
+    "modelo": "llama3.2",
+    "url": "http://localhost:11434",
+    "timeout_gerar": 90,
+    "timeout_chat": 60
+  }
+}

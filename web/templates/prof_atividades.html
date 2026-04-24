@@ -1,0 +1,91 @@
+{% extends "prof_base.html" %}
+{% block title %}Atividades{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-20">
+  <div>
+    <h2 style="font-size:20px;font-weight:700;color:var(--branco);">Atividades</h2>
+    <p class="text-muted">{{ atividades | length }} atividade(s) criada(s)</p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('modal-ativ').style.display='flex'">＋ Nova atividade</button>
+</div>
+
+{% if atividades %}
+  {% for at in atividades %}
+  {% set info = modulos.get(at.modulo, ('Módulo','📖','#00C9A7',5)) %}
+  <div class="ativ-card mb-8">
+    <div class="ativ-lateral" style="background:{{ info[2] }};"></div>
+    <div class="ativ-body">
+      <div class="flex justify-between items-center mb-8">
+        <div class="ativ-titulo">{{ at.titulo }}</div>
+        <div class="flex items-center gap-8">
+          <span class="badge" style="background:var(--rxo-bg);color:var(--roxo);">{{ at.turma }}</span>
+          <form method="POST" action="/professor/atividades/excluir/{{ at.id }}">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+      <div class="ativ-meta">
+        {{ info[0] }} · Nível {{ at.nivel_min }}+ ·
+        {% if at.prazo %}Prazo: {{ at.prazo }}{% else %}Sem prazo{% endif %} ·
+        <span style="color:var(--verde);">{{ at.concluidos }}/{{ at.total_alunos }} concluídos</span>
+      </div>
+      {% if at.instrucoes %}
+      <div style="font-size:12px;color:var(--txt2);margin-top:6px;">{{ at.instrucoes }}</div>
+      {% endif %}
+      {% if at.total_alunos > 0 %}
+      <div class="bar-wrap mt-8">
+        <div class="bar-fill" style="width:{{ (at.concluidos / at.total_alunos * 100) | int }}%;background:{{ info[2] }};"></div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div style="text-align:center;padding:60px;color:var(--txt3);">
+    <div style="font-size:48px;margin-bottom:12px;">📋</div>
+    <p>Nenhuma atividade criada ainda.</p>
+  </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<div id="modal-ativ" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:440px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;">📋 Nova atividade</h3>
+    <form method="POST" action="/professor/atividades/criar">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Título *</p>
+      <input class="input" type="text" name="titulo" placeholder="Nome da atividade" required style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Turma *</p>
+      <select class="input" name="turma" required style="margin-bottom:12px;">
+        <option value="">Selecionar turma...</option>
+        {% for nome_t in turmas %}<option value="{{ nome_t }}">{{ nome_t }}</option>{% endfor %}
+      </select>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Módulo *</p>
+      <select class="input" name="modulo" required style="margin-bottom:12px;">
+        <option value="">Selecionar módulo...</option>
+        {% for chave, (nome_mod, icone, cor, _) in modulos.items() %}
+        <option value="{{ chave }}">{{ icone }} {{ nome_mod }}</option>
+        {% endfor %}
+      </select>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Nível mínimo</p>
+      <select class="input" name="nivel_min" style="margin-bottom:12px;">
+        {% for n in range(1,6) %}<option value="{{ n }}">Nível {{ n }}</option>{% endfor %}
+      </select>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Prazo (opcional)</p>
+      <input class="input" type="date" name="prazo" style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Instruções (opcional)</p>
+      <textarea class="input" name="instrucoes" rows="2" placeholder="Instruções para os alunos..." style="resize:vertical;margin-bottom:16px;"></textarea>
+      <div class="flex gap-8">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Criar atividade</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-ativ').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('modal-ativ').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+{% endblock %}

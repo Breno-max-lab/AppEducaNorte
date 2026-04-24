@@ -1,0 +1,15 @@
+# ──────────────────────────────────────────────
+#  EducaNorte — Dependências do Servidor Web
+#  NÃO inclui: tkinter, pyttsx3, vosk, sounddevice
+#  (esses são apenas para uso local/Raspberry Pi)
+# ──────────────────────────────────────────────
+
+# Servidor web
+flask>=3.0.0
+waitress>=3.0.0
+
+# Requisições HTTP (usado pelo módulo de IA)
+requests>=2.31.0
+
+# QR Code no terminal (opcional — não quebra se ausente)
+qrcode[pil]>=7.4.2

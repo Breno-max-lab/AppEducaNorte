@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Progresso — Assistente Ribeirinho{% endblock %}
+{% block nav_prog %}active{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <p class="greeting-title">Meu Progresso</p>
+  <p class="greeting-sub">Olá, {{ progresso.nome }}! Veja o que você conquistou.</p>
+
+  {% set modulos = [
+    ("Leitura",      "leitura",    "📖", "#00C9A7", "#0E2A2A"),
+    ("Matemática",   "matematica", "🔢", "#F4A261", "#2A1A0A"),
+    ("Meio Ambiente","ambiental",  "🌿", "#4ADE80", "#0E2D1E"),
+    ("Saúde",        "saude",      "🏥", "#F87171", "#2A0A0A"),
+    ("Cultura",      "cultura",    "🎭", "#9B72CF", "#1A0D2A"),
+  ] %}
+
+  {% for nome_mod, chave, icone, cor, cor_bg in modulos %}
+    {% if progresso[chave] is defined %}
+    {% set d = progresso[chave] %}
+    {% set pct = (d.acertos_totais / d.tentativas_totais * 100) | int if d.tentativas_totais > 0 else 0 %}
+    <div style="background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 10px;">
+      <div style="height: 3px; background: {{ cor }};"></div>
+      <div style="padding: 12px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 700; color: var(--branco);">{{ icone }}  {{ nome_mod }}</span>
+          <span style="background: {{ cor_bg }}; color: {{ cor }}; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px;">Nível {{ d.nivel_atual }}</span>
+        </div>
+        <div style="height: 5px; background: #1A2E3E; border-radius: 3px; margin-bottom: 6px;">
+          <div style="height: 5px; width: {{ pct }}%; background: {{ cor }}; border-radius: 3px;"></div>
+        </div>
+        <p style="font-size: 11px; color: var(--txt3);">{{ d.acertos_totais }} acertos de {{ d.tentativas_totais }} perguntas ({{ pct }}%)</p>
+      </div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Conquistas -->
+  {% if progresso.conquistas %}
+  <div style="background: var(--card); border-radius: 12px; padding: 14px 16px; margin-top: 8px; margin-bottom: 16px;">
+    <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px;">🏆 CONQUISTAS DESBLOQUEADAS</p>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      {% for c in progresso.conquistas %}
+      <div style="display: flex; align-items: center; gap: 10px; background: var(--aml-bg); border-radius: 8px; padding: 10px 12px;">
+        <span style="font-size: 18px;">{{ c.split(' ')[0] }}</span>
+        <span style="font-size: 13px; font-weight: 600; color: var(--amarelo);">{{ c.split(' ', 1)[1] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div style="background: var(--card); border-radius: 12px; padding: 16px; margin-top: 8px; margin-bottom: 16px; text-align: center;">
+    <p style="font-size: 13px; color: var(--txt3);">🌱 Complete lições para desbloquear conquistas!</p>
+  </div>
+  {% endif %}
+
+  <a href="/" class="btn btn-ghost">← Voltar ao menu</a>
+
+</div>
+{% endblock %}

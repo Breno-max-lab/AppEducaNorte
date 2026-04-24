@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Médio/Adulto — EducaNorte{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block head %}
+<style>
+  .medio-topbar { background: #120820; border-bottom: 2px solid #2A1A4A; padding: 0 16px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .materia-card { border-radius: 14px; overflow: hidden; text-decoration: none; display: block; margin-bottom: 10px; background: var(--card); border: 1px solid var(--borda); transition: transform .15s, border-color .15s; }
+  .materia-card:active { transform: scale(.97); }
+  .materia-card:hover  { border-color: var(--txt3); }
+  .materia-top { height: 5px; }
+  .materia-body { padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .materia-icon { font-size: 30px; flex-shrink: 0; width: 44px; text-align: center; }
+  .materia-titulo { font-size: 15px; font-weight: 700; color: var(--branco); }
+  .materia-desc { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+  .nivel-badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 10px; flex-shrink: 0; }
+  .bar-wrap { height: 3px; background: #1A2E3E; border-radius: 2px; margin-top: 7px; }
+  .bar-fill { height: 3px; border-radius: 2px; }
+  .enem-destaque { background: linear-gradient(135deg, #2A1A4A 0%, #1A0A2A 100%); border: 2px solid #E76F51 !important; }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 20px; }
+  .stat-mini { flex: 1; background: var(--card); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .stat-num { font-size: 20px; font-weight: 700; }
+  .stat-lbl { font-size: 10px; color: var(--txt3); margin-top: 2px; }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="medio-topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a href="/" style="color:var(--txt2);font-size:22px;text-decoration:none;">←</a>
+    <span style="font-size:16px;font-weight:700;color:#9B72CF;">🎓 Médio / Adulto</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-size:18px;">{{ progresso.avatar }}</span>
+    <span style="font-size:13px;color:var(--txt2);">{{ progresso.nome }}</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 16px; max-width: 520px; margin: 0 auto; padding-bottom: 40px;">
+
+  <p style="font-size: 20px; font-weight: 700; color: var(--branco); margin-bottom: 4px;">Olá, {{ progresso.nome }}! 🎓</p>
+  <p style="font-size: 13px; color: var(--txt3); margin-bottom: 16px;">Escolha uma disciplina para estudar.</p>
+
+  <!-- Stats rápidas -->
+  {% set total_acertos = namespace(v=0) %}
+  {% set total_niveis  = namespace(v=0) %}
+  {% for chave in modulos %}
+    {% set d = progresso.get('medio_' + chave, {}) %}
+    {% set total_acertos.v = total_acertos.v + d.get('acertos_totais', 0) %}
+    {% set total_niveis.v  = total_niveis.v  + d.get('nivel_atual', 1) - 1 %}
+  {% endfor %}
+  <div class="stats-row">
+    <div class="stat-mini">
+      <div class="stat-num" style="color:#9B72CF;">{{ modulos | length }}</div>
+      <div class="stat-lbl">Disciplinas</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-num" style="color:#00C9A7;">{{ total_acertos.v }}</div>
+      <div class="stat-lbl">Acertos</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-num" style="color:#FFD166;">{{ total_niveis.v }}</div>
+      <div class="stat-lbl">Níveis completos</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-num" style="color:#F4A261;">{{ progresso.conquistas | length }}</div>
+      <div class="stat-lbl">Conquistas</div>
+    </div>
+  </div>
+
+  <!-- Destaque ENEM -->
+  <a href="/medio/licao/enem" class="materia-card enem-destaque" style="margin-bottom: 14px;">
+    <div style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+      <span style="font-size: 32px;">🎯</span>
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: #E76F51;">Simulado ENEM</div>
+        <div style="font-size: 12px; color: var(--txt3);">Questões mistas · Estratégias · Redação</div>
+      </div>
+      {% set n_enem = progresso.get('medio_enem', {}).get('nivel_atual', 1) %}
+      <span style="background: #E76F5122; color: #E76F51; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 10px;">Nível {{ n_enem }}/5</span>
+    </div>
+  </a>
+
+  <!-- Disciplinas -->
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: .08em; margin-bottom: 10px;">DISCIPLINAS</p>
+  {% for chave, mat in modulos.items() %}
+  {% if chave != 'enem' %}
+  {% set d = progresso.get('medio_' + chave, {}) %}
+  {% set nivel = d.get('nivel_atual', 1) %}
+  {% set acertos = d.get('acertos_totais', 0) %}
+  {% set tent = d.get('tentativas_totais', 0) %}
+
+  <a href="/medio/licao/{{ chave }}" class="materia-card">
+    <div class="materia-top" style="background: {{ mat.cor }};"></div>
+    <div class="materia-body">
+      <span class="materia-icon">{{ mat.icone }}</span>
+      <div style="flex: 1; min-width: 0;">
+        <div class="materia-titulo">{{ mat.titulo }}</div>
+        <div class="materia-desc">
+          {% if tent > 0 %}{{ acertos }} acertos de {{ tent }} perguntas{% else %}Não iniciado{% endif %}
+        </div>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width: {{ (nivel - 1) * 20 }}%; background: {{ mat.cor }};"></div>
+        </div>
+      </div>
+      <span class="nivel-badge" style="background: {{ mat.cor }}22; color: {{ mat.cor }};">Nível {{ nivel }}/5</span>
+    </div>
+  </a>
+  {% endif %}
+  {% endfor %}
+
+  <!-- Conquistas -->
+  {% if progresso.conquistas %}
+  <div style="background: var(--card); border-radius: 14px; padding: 14px 16px; margin-top: 14px;">
+    <p style="font-size: 11px; font-weight: 700; color: var(--txt3); letter-spacing: .06em; margin-bottom: 10px;">🏆 CONQUISTAS</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      {% for c in progresso.conquistas %}
+      <span style="background: var(--aml-bg); color: var(--amarelo); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px;">{{ c }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

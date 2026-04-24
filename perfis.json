@@ -1,0 +1,347 @@
+{
+  "Carlos": {
+    "nome": "Carlos",
+    "avatar": "🍃",
+    "modulo_ensino": "infantil",
+    "conquistas": [
+      "🌱 Primeiro passo"
+    ],
+    "sessoes": [
+      "2026-04-18 12:12:53.463531",
+      "2026-04-18 23:24:02.477718",
+      "2026-04-19 20:20:58.292481",
+      "2026-04-20 22:25:28.967953"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "infantil_letras": {
+      "nivel": 2,
+      "acertos": 5,
+      "tentativas": 5
+    },
+    "infantil_cores": {
+      "nivel": 1,
+      "acertos": 4,
+      "tentativas": 4
+    }
+  },
+  "Bruno": {
+    "nome": "Bruno",
+    "avatar": "🐬",
+    "modulo_ensino": "fundamental",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-18 23:24:28.591162"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  },
+  "Breno": {
+    "nome": "Breno",
+    "avatar": "🦜",
+    "modulo_ensino": "medio",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-19 12:01:11.662557"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  },
+  "breno_branches": {
+    "nome": "breno_branches",
+    "nome_completo": "Erik Breno Branches Caldeira",
+    "avatar": "🌊",
+    "modulo_ensino": "medio",
+    "senha_hash": "a195ff1e454f59f793f9c55fa7a28d1f210c7c3a78d7f2ff49cf0335aa79cd41",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-21 13:16:37.022238"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  },
+  "laurinha": {
+    "nome": "laurinha",
+    "nome_completo": "laurinha",
+    "avatar": "🌊",
+    "modulo_ensino": "infantil",
+    "senha_hash": "",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-21 20:00:00.945745"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "infantil_cores": {
+      "nivel": 1,
+      "acertos": 4,
+      "tentativas": 4
+    }
+  },
+  "Sofia": {
+    "nome": "Sofia",
+    "nome_completo": "Sofia",
+    "avatar": "🌊",
+    "modulo_ensino": "infantil",
+    "senha_hash": "",
+    "conquistas": [
+      "🌱 Primeiro passo"
+    ],
+    "sessoes": [
+      "2026-04-21 20:01:24.959262"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "infantil_numeros": {
+      "nivel": 2,
+      "acertos": 5,
+      "tentativas": 5
+    }
+  },
+  "lucas": {
+    "nome": "lucas",
+    "nome_completo": "lucas",
+    "avatar": "🌊",
+    "modulo_ensino": "infantil",
+    "senha_hash": "",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-23 17:53:09.399077"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  },
+  "erik20": {
+    "nome": "erik20",
+    "nome_completo": "erik breno",
+    "avatar": "🌊",
+    "modulo_ensino": "fundamental",
+    "senha_hash": "39de37ef87dd757551194be968ac662f20eafc8b118a11b10e6a57dc79d540fc",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-23 17:57:07.800584"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  },
+  "henry": {
+    "nome": "henry",
+    "nome_completo": "lucas henry",
+    "avatar": "🌊",
+    "modulo_ensino": "medio",
+    "senha_hash": "46ff18131a6daf2839e263b69aeeee331620af74e08511fc80ab243ece1b407a",
+    "conquistas": [],
+    "sessoes": [
+      "2026-04-23 17:59:50.024405"
+    ],
+    "leitura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "matematica": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "ambiental": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "saude": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    },
+    "cultura": {
+      "nivel_atual": 1,
+      "acertos_totais": 0,
+      "tentativas_totais": 0
+    }
+  }
+}

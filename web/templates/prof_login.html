@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professor — EducaNorte</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+body { background: #0D1B2A; color: #D0ECF4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.card { background: #112233; border-radius: 16px; padding: 32px; width: 100%; max-width: 380px; }
+.input { width: 100%; padding: 12px; background: #1A2E3E; color: #E8F4F8; border: 1px solid #1E3A4A; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 14px; }
+.input:focus { border-color: #9B72CF; }
+.btn { display: block; width: 100%; padding: 13px; background: #9B72CF; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn:hover { opacity: .85; }
+.erro { background: #2A100A; color: #E76F51; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 16px; text-align: center; }
+</style>
+</head>
+<body>
+<div style="text-align:center;margin-bottom:32px;">
+  <div style="width:72px;height:72px;background:#1A0D2A;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 16px;">👩‍🏫</div>
+  <h1 style="font-size:22px;font-weight:700;color:#9B72CF;">Painel do Professor</h1>
+  <p style="font-size:13px;color:#3A6A78;margin-top:4px;">EducaNorte</p>
+</div>
+
+<div class="card">
+  {% if erro %}
+  <div class="erro">❌ {{ erro }}</div>
+  {% endif %}
+  <form method="POST" action="/professor/login">
+    <p style="font-size:13px;color:#3A6A78;margin-bottom:8px;">Senha de acesso:</p>
+    <input class="input" type="password" name="senha" placeholder="Digite a senha..." autofocus>
+    <button class="btn" type="submit">Entrar no painel</button>
+  </form>
+  <a href="/" style="display:block;text-align:center;margin-top:16px;font-size:12px;color:#3A6A78;text-decoration:none;">← Voltar ao app</a>
+  <p style="text-align:center;font-size:11px;color:#3A6A78;margin-top:12px;">
+    Senha padrão: <code style="color:#9B72CF;">professor123</code>
+  </p>
+</div>
+</body>
+</html>

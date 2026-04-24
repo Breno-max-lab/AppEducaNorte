@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}{{ modulo.titulo }} — EducaNorte{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block head %}
+<style>
+  .inf-topbar { background: #0A1520; border-bottom: 2px solid {{ modulo.cor }}44; padding: 0 16px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .barra-progresso { height: 8px; background: #1A2E3E; position: sticky; top: 60px; z-index: 99; }
+  .barra-fill { height: 8px; background: {{ modulo.cor }}; transition: width .5s ease; }
+  .visual-grande { font-size: 80px; text-align: center; display: block; line-height: 1.2; margin: 16px 0; animation: aparecer .3s ease; }
+  @keyframes aparecer { from{opacity:0;transform:scale(.8)} to{opacity:1;transform:scale(1)} }
+  .pergunta-txt { font-size: 20px; font-weight: 700; color: var(--branco); text-align: center; margin-bottom: 20px; line-height: 1.4; }
+  .opcao-btn { display: block; width: 100%; padding: 18px; font-size: 20px; font-weight: 700; border-radius: 16px; border: 3px solid transparent; cursor: pointer; margin-bottom: 12px; transition: all .15s; -webkit-appearance: none; }
+  .opcao-btn:active { transform: scale(.96); }
+  .opcao-letra { background: var(--card); color: var(--branco); font-size: 28px; letter-spacing: 2px; }
+  .opcao-emoji { background: var(--card); color: var(--branco); font-size: 44px; padding: 20px; }
+  .opcao-cor { border-radius: 16px; height: 80px; border: 3px solid transparent; }
+  .opcao-btn.correta { border-color: #4ADE80; background: #0E2D1E !important; color: #4ADE80 !important; animation: pulso .4s ease; }
+  .opcao-btn.errada  { border-color: #E76F51; background: #2A100A !important; color: #E76F51 !important; animation: tremer .35s ease; }
+  @keyframes pulso { 0%{transform:scale(1)} 50%{transform:scale(1.05)} 100%{transform:scale(1)} }
+  @keyframes tremer { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+  .feedback-box { border-radius: 14px; padding: 14px; text-align: center; font-size: 18px; font-weight: 700; margin: 12px 0; display: none; animation: aparecer .25s ease; }
+  .feedback-ok  { background: #0E2D1E; color: #4ADE80; }
+  .feedback-err { background: #2A100A; color: #E76F51; }
+  .btn-voz { background: var(--card); border: 2px solid {{ modulo.cor }}; border-radius: 50%; width: 54px; height: 54px; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; transition: all .15s; }
+  .btn-voz:active { transform: scale(.92); background: {{ modulo.cor }}22; }
+  .comparacao-wrap { display: flex; gap: 12px; }
+  .comp-opcao { flex: 1; background: var(--card); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; border: 3px solid transparent; font-size: 32px; line-height: 1.4; transition: all .15s; }
+  .comp-opcao:active { transform: scale(.95); }
+  .comp-opcao.correta { border-color: #4ADE80; background: #0E2D1E; }
+  .comp-opcao.errada  { border-color: #E76F51; background: #2A100A; }
+  .resultado { text-align: center; padding: 32px 16px; animation: aparecer .3s ease; }
+  .resultado-emoji { font-size: 72px; display: block; margin-bottom: 16px; }
+  .resultado-msg { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .resultado-sub { font-size: 18px; color: var(--txt2); margin-bottom: 28px; }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="inf-topbar">
+  <a href="/infantil" style="color:var(--txt2);text-decoration:none;font-size:28px;">←</a>
+  <span style="font-size:16px;font-weight:700;color:{{ modulo.cor }};">{{ modulo.icone }} {{ modulo.titulo }}</span>
+  <span id="pts" style="font-size:16px;color:#4ADE80;font-weight:700;">✓ 0</span>
+</div>
+<div class="barra-progresso">
+  <div class="barra-fill" id="barra" style="width:0%;"></div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 16px; max-width: 480px; margin: 0 auto; padding-bottom: 40px;">
+
+  <div id="area-atividade">
+    <!-- JS renderiza aqui -->
+  </div>
+
+  <div id="area-resultado" style="display:none;">
+    <!-- Resultado final -->
+  </div>
+
+</div>
+
+<script>
+const ATIVIDADE = {{ atividade | tojson }};
+const PERGUNTAS = ATIVIDADE.perguntas;
+const TOTAL = PERGUNTAS.length;
+const COR   = "{{ modulo.cor }}";
+const CHAVE = "{{ chave }}";
+
+let indice    = 0;
+let acertos   = 0;
+let bloqueado = false;
+
+// ── Voz ──
+function falar(texto) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(texto);
+  u.lang = "pt-BR";
+  u.rate = 0.85;
+  window.speechSynthesis.speak(u);
+}
+
+function atualizar() {
+  document.getElementById("pts").textContent = "✓ " + acertos;
+  document.getElementById("barra").style.width = (indice / TOTAL * 100) + "%";
+}
+
+function renderPergunta() {
+  if (indice >= TOTAL) { mostrarResultado(); return; }
+  bloqueado = false;
+  atualizar();
+  const p = PERGUNTAS[indice];
+
+  // Detecta tipo
+  let html = "";
+
+  // Botão de voz
+  html += `<button class="btn-voz" onclick="falar('${(p.voz||'').replace(/'/g,"\\'")}')">🔊</button>`;
+
+  // Visual principal
+  if (p.visual) {
+    html += `<span class="visual-grande">${p.visual}</span>`;
+  }
+
+  // Texto da pergunta
+  html += `<p class="pergunta-txt">${p.voz || ATIVIDADE.instrucao}</p>`;
+
+  // Feedback
+  html += `<div class="feedback-box feedback-ok"  id="fb-ok"></div>`;
+  html += `<div class="feedback-box feedback-err" id="fb-err"></div>`;
+
+  // Opções conforme tipo
+  if (p.tipo === "comparacao") {
+    html += `<div class="comparacao-wrap">
+      <div class="comp-opcao" id="opc-A" onclick="respComp('A')">${p.visual_a}<br><small style="font-size:14px;color:rgba(255,255,255,.6);">${p.qtd_a}</small></div>
+      <div class="comp-opcao" id="opc-B" onclick="respComp('B')">${p.visual_b}<br><small style="font-size:14px;color:rgba(255,255,255,.6);">${p.qtd_b}</small></div>
+    </div>`;
+  } else if (p.opcoes && p.opcoes[0] && p.opcoes[0].emoji !== undefined) {
+    // Opções com emoji e nome (animais)
+    p.opcoes.forEach((op, i) => {
+      html += `<button class="opcao-btn opcao-emoji" onclick="responder(${i})">${op.emoji}</button>`;
+    });
+  } else if (p.opcoes && p.opcoes[0] && p.opcoes[0].cor !== undefined) {
+    // Opções de cor
+    p.opcoes.forEach((op, i) => {
+      html += `<button class="opcao-btn opcao-cor" style="background:${op.cor};" onclick="responder(${i})"></button>`;
+    });
+  } else {
+    // Opções de texto/letra/número
+    p.opcoes.forEach((op, i) => {
+      html += `<button class="opcao-btn opcao-letra" onclick="responder(${i})">${op}</button>`;
+    });
+  }
+
+  document.getElementById("area-atividade").innerHTML = html;
+
+  // Fala a instrução automaticamente
+  setTimeout(() => falar(p.voz || ATIVIDADE.instrucao), 300);
+}
+
+function responder(idx) {
+  if (bloqueado) return;
+  bloqueado = true;
+  const p = PERGUNTAS[indice];
+  const btns = document.querySelectorAll(".opcao-btn");
+  const correto = (p.tipo === "comparacao")
+    ? false
+    : (p.opcoes[idx]?.correto === true ||
+       String(p.opcoes[idx]) === String(p.resposta) ||
+       (p.opcoes[idx]?.nome && p.opcoes[idx].correto));
+
+  btns[idx].classList.add(correto ? "correta" : "errada");
+  mostrarFeedback(correto, p);
+}
+
+function respComp(lado) {
+  if (bloqueado) return;
+  bloqueado = true;
+  const p = PERGUNTAS[indice];
+  const correto = lado === p.resposta;
+  document.getElementById("opc-" + lado).classList.add(correto ? "correta" : "errada");
+  mostrarFeedback(correto, p);
+}
+
+function mostrarFeedback(correto, p) {
+  if (correto) {
+    acertos++;
+    document.getElementById("fb-ok").textContent = "✅ " + (p.voz_acerto || "Correto!");
+    document.getElementById("fb-ok").style.display = "block";
+    falar(p.voz_acerto || "Correto! Muito bem!");
+  } else {
+    document.getElementById("fb-err").textContent = "❌ " + (p.voz_erro || "Tente de novo!");
+    document.getElementById("fb-err").style.display = "block";
+    falar(p.voz_erro || "Não foi essa. Tente de novo!");
+  }
+  atualizar();
+  setTimeout(() => { indice++; renderPergunta(); }, 2000);
+}
+
+async function mostrarResultado() {
+  document.getElementById("barra").style.width = "100%";
+  document.getElementById("area-atividade").style.display = "none";
+
+  const pct = acertos / TOTAL;
+  let emoji, msg, cor;
+  if (pct >= 0.8)      { emoji = "⭐⭐⭐"; msg = "Muito bem!";        cor = "#4ADE80"; }
+  else if (pct >= 0.5) { emoji = "⭐⭐";  msg = "Bom trabalho!";     cor = "#F4A261"; }
+  else                 { emoji = "⭐";   msg = "Continue tentando!"; cor = "#7ABFCC"; }
+
+  falar(msg + ` Você acertou ${acertos} de ${TOTAL}!`);
+
+  // Salva progresso
+  try {
+    await fetch("/api/infantil/progresso", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ chave: CHAVE, acertos, total: TOTAL })
+    });
+  } catch(e) {}
+
+  document.getElementById("area-resultado").innerHTML = `
+    <div class="resultado">
+      <span class="resultado-emoji">${emoji}</span>
+      <div class="resultado-msg" style="color:${cor};">${msg}</div>
+      <div class="resultado-sub">${acertos} de ${TOTAL} certas</div>
+      <a href="/infantil" class="btn" style="font-size:18px;padding:16px;">← Voltar</a>
+    </div>`;
+  document.getElementById("area-resultado").style.display = "block";
+}
+
+// Inicia
+renderPergunta();
+</script>
+{% endblock %}

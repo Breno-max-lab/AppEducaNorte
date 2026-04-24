@@ -1,0 +1,106 @@
+{% extends "prof_base.html" %}
+{% block title %}Relatórios{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h2 style="font-size:20px;font-weight:700;color:var(--branco);margin-bottom:4px;">Relatórios</h2>
+<p class="text-muted mb-20">Visão geral de desempenho da turma</p>
+
+<!-- Stats gerais -->
+<div class="stat-grid mb-20">
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--roxo);">{{ total_alunos }}</div>
+    <div class="stat-lbl">Alunos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--teal);">{{ dados_modulos.values() | sum(attribute='acertos') }}</div>
+    <div class="stat-lbl">Acertos totais</div>
+  </div>
+  <div class="stat-card">
+    {% set media = (dados_modulos.values() | map(attribute='pct') | list | sum / dados_modulos | length) | int if dados_modulos else 0 %}
+    <div class="stat-num" style="color:var(--verde);">{{ media }}%</div>
+    <div class="stat-lbl">Média geral</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--amarelo);">{{ dados_turmas | length }}</div>
+    <div class="stat-lbl">Turmas</div>
+  </div>
+</div>
+
+<!-- Gráfico por módulo -->
+<div class="section-label">DESEMPENHO POR MÓDULO</div>
+<div class="card mb-20" style="padding:20px;">
+  <canvas id="chartModulos" height="120"></canvas>
+</div>
+
+<!-- Barras por módulo (detalhado) -->
+<div class="section-label">APROVEITAMENTO DETALHADO</div>
+{% for chave, d in dados_modulos.items() %}
+<div style="background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+  <div class="flex justify-between items-center mb-8">
+    <span style="font-size:14px;font-weight:700;color:var(--branco);">{{ d.nome }}</span>
+    <span style="font-size:14px;font-weight:700;color:{{ d.cor }};">{{ d.pct }}%</span>
+  </div>
+  <div class="bar-wrap" style="height:8px;">
+    <div class="bar-fill" style="width:{{ d.pct }}%;background:{{ d.cor }};height:8px;"></div>
+  </div>
+  <div class="text-muted mt-8">{{ d.acertos }} acertos de {{ d.tentativas }} perguntas</div>
+</div>
+{% endfor %}
+
+<!-- Por turma -->
+{% if dados_turmas %}
+<div class="section-label mt-24">DESEMPENHO POR TURMA</div>
+{% for t in dados_turmas %}
+{% set cor_t = '#4ADE80' if t.media >= 70 else ('#F4A261' if t.media >= 40 else '#E76F51') %}
+<div style="background:var(--card);border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+  <div class="flex justify-between items-center mb-8">
+    <span style="font-size:14px;font-weight:700;color:var(--branco);">{{ t.nome }}</span>
+    <span style="font-size:14px;font-weight:700;color:{{ cor_t }};">{{ t.media }}%</span>
+  </div>
+  <div class="bar-wrap"><div class="bar-fill" style="width:{{ t.media }}%;background:{{ cor_t }};"></div></div>
+  <div class="text-muted mt-8">{{ t.total }} aluno(s) · {{ t.acertos }} acertos totais</div>
+</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dadosModulos = {{ dados_modulos | tojson }};
+const labels = Object.values(dadosModulos).map(d => d.nome);
+const valores = Object.values(dadosModulos).map(d => d.pct);
+const cores   = Object.values(dadosModulos).map(d => d.cor);
+
+new Chart(document.getElementById('chartModulos'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [{
+      label: 'Aproveitamento (%)',
+      data: valores,
+      backgroundColor: cores.map(c => c + '44'),
+      borderColor: cores,
+      borderWidth: 2,
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        min: 0, max: 100,
+        grid: { color: '#1E3A4A' },
+        ticks: { color: '#3A6A78', callback: v => v + '%' }
+      },
+      x: { grid: { display: false }, ticks: { color: '#7ABFCC' } }
+    }
+  }
+});
+</script>
+{% endblock %}

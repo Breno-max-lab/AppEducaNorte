@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}{{ materia.titulo }} — Nível {{ nivel }}{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block head %}
+<style>
+  .licao-topbar { background: #0A1520; border-bottom: 2px solid {{ materia.cor }}44; padding: 0 16px; height: 54px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .barra-prog { height: 5px; background: #1A2E3E; position: sticky; top: 54px; z-index: 99; }
+  .barra-fill { height: 5px; background: {{ materia.cor }}; transition: width .5s; }
+  .licao-box { background: var(--card); border-radius: 14px; padding: 16px; margin-bottom: 20px; }
+  .licao-titulo { font-size: 18px; font-weight: 700; color: var(--branco); margin-bottom: 8px; }
+  .licao-texto { font-size: 14px; color: var(--txt2); line-height: 1.7; }
+  .pergunta-num { font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: .08em; margin-bottom: 8px; }
+  .pergunta-txt { font-size: 16px; font-weight: 600; color: var(--branco); margin-bottom: 16px; line-height: 1.5; }
+  .opcao-btn { display: block; width: 100%; text-align: left; padding: 14px 16px; background: #1A2E3E; border: 2px solid var(--borda); border-radius: 12px; color: var(--txt2); font-size: 14px; cursor: pointer; margin-bottom: 10px; transition: all .15s; -webkit-appearance: none; }
+  .opcao-btn:hover  { border-color: {{ materia.cor }}; color: var(--branco); }
+  .opcao-btn:active { transform: scale(.98); }
+  .opcao-btn.correta { border-color: #4ADE80; background: #0E2D1E; color: #4ADE80; }
+  .opcao-btn.errada  { border-color: #E76F51; background: #2A100A; color: #E76F51; }
+  .feedback { display: none; border-radius: 10px; padding: 12px 14px; font-size: 14px; font-weight: 600; margin-top: 4px; }
+  .feedback.ok  { background: #0E2D1E; color: #4ADE80; display: block; }
+  .feedback.err { background: #2A100A; color: #E76F51; display: block; }
+  .resultado-box { text-align: center; padding: 32px 20px; }
+  .resultado-emoji { font-size: 64px; display: block; margin-bottom: 16px; }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="licao-topbar">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <a href="/fundamental" style="color:var(--txt2);font-size:22px;text-decoration:none;">←</a>
+    <span style="font-size:15px;font-weight:700;color:{{ materia.cor }};">{{ materia.icone }} {{ materia.titulo }}</span>
+    <span style="font-size:12px;color:var(--txt3);">Nível {{ nivel }}</span>
+  </div>
+  <span id="placar" style="font-size:14px;font-weight:700;color:#4ADE80;">✓ 0</span>
+</div>
+<div class="barra-prog"><div class="barra-fill" id="barra" style="width:0%;"></div></div>
+{% endblock %}
+
+{% block content %}
+<div style="padding: 16px; max-width: 520px; margin: 0 auto; padding-bottom: 40px;">
+
+  <!-- Texto da lição -->
+  <div class="licao-box">
+    <div class="licao-titulo">{{ licao.titulo }}</div>
+    <div class="licao-texto">{{ licao.texto }}</div>
+  </div>
+
+  <!-- Área de perguntas -->
+  <div id="area-pergunta"></div>
+  <div id="area-resultado" style="display:none;"></div>
+
+</div>
+
+<script>
+const PERGUNTAS = {{ licao.perguntas | tojson }};
+const TOTAL     = PERGUNTAS.length;
+const COR       = "{{ materia.cor }}";
+const CHAVE     = "{{ chave }}";
+const NIVEL     = {{ nivel }};
+
+let indice    = 0;
+let acertos   = 0;
+let bloqueado = false;
+
+function atualizar() {
+  document.getElementById("placar").textContent = "✓ " + acertos;
+  document.getElementById("barra").style.width = (indice / TOTAL * 100) + "%";
+}
+
+function renderPergunta() {
+  if (indice >= TOTAL) { mostrarResultado(); return; }
+  bloqueado = false;
+  atualizar();
+  const p = PERGUNTAS[indice];
+  let html = `
+    <div style="margin-bottom:16px;">
+      <div class="pergunta-num">PERGUNTA ${indice + 1} DE ${TOTAL}</div>
+      <div class="pergunta-txt">${p.enunciado}</div>
+      <div id="feedback" class="feedback"></div>
+      <div id="opcoes">`;
+  p.opcoes.forEach((op, i) => {
+    html += `<button class="opcao-btn" onclick="responder(${i})">${op}</button>`;
+  });
+  html += `</div></div>`;
+  document.getElementById("area-pergunta").innerHTML = html;
+}
+
+function responder(idx) {
+  if (bloqueado) return;
+  bloqueado = true;
+  const p = PERGUNTAS[indice];
+  const correta = p.opcoes[idx] === p.resposta;
+  const btns = document.querySelectorAll(".opcao-btn");
+
+  btns[idx].classList.add(correta ? "correta" : "errada");
+
+  // Marca a correta se errou
+  if (!correta) {
+    btns.forEach(b => {
+      if (b.textContent.trim() === p.resposta) b.classList.add("correta");
+    });
+  }
+
+  btns.forEach(b => b.disabled = true);
+
+  const fb = document.getElementById("feedback");
+  if (correta) {
+    acertos++;
+    fb.className = "feedback ok";
+    fb.textContent = "✅ Correto!";
+  } else {
+    fb.className = "feedback err";
+    fb.textContent = `❌ Dica: ${p.dica}`;
+  }
+  atualizar();
+  setTimeout(() => { indice++; renderPergunta(); }, 2000);
+}
+
+async function mostrarResultado() {
+  document.getElementById("barra").style.width = "100%";
+  document.getElementById("area-pergunta").style.display = "none";
+
+  const pct  = acertos / TOTAL;
+  const emoji = pct >= 0.8 ? "🌟" : pct >= 0.5 ? "👍" : "💪";
+  const cor   = pct >= 0.8 ? "#4ADE80" : pct >= 0.5 ? "#F4A261" : "#7ABFCC";
+  const msg   = pct >= 0.8 ? "Excelente!" : pct >= 0.5 ? "Bom trabalho!" : "Continue praticando!";
+
+  // Salva progresso
+  let avancou = false;
+  try {
+    const r = await fetch("/api/fundamental/progresso", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ chave: CHAVE, nivel: NIVEL, acertos, total: TOTAL })
+    });
+    const data = await r.json();
+    avancou = data.avancou;
+  } catch(e) {}
+
+  document.getElementById("area-resultado").innerHTML = `
+    <div class="resultado-box">
+      <span class="resultado-emoji">${emoji}</span>
+      <div style="font-size:24px;font-weight:700;color:${cor};margin-bottom:8px;">${msg}</div>
+      <div style="font-size:16px;color:var(--txt2);margin-bottom:8px;">${acertos} de ${TOTAL} certas</div>
+      ${avancou ? `<div style="font-size:13px;color:#4ADE80;margin-bottom:20px;">🆙 Você avançou para o nível ${NIVEL + 1}!</div>` : ""}
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+        <a href="/fundamental/licao/${CHAVE}" class="btn" style="background:${COR};color:#000;">Tentar de novo</a>
+        <a href="/fundamental" class="btn" style="background:var(--card);color:var(--txt2);border:1px solid var(--borda);">← Matérias</a>
+      </div>
+    </div>`;
+  document.getElementById("area-resultado").style.display = "block";
+}
+
+renderPergunta();
+</script>
+{% endblock %}

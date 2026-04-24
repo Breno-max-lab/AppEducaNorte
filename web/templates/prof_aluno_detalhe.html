@@ -1,0 +1,74 @@
+<!-- prof_aluno_detalhe.html -->
+{% extends "prof_base.html" %}
+{% block title %}{{ aluno.nome }}{% endblock %}
+{% block content %}
+
+<div class="flex items-center gap-12 mb-20">
+  <a href="/professor/alunos" style="color:var(--txt3);text-decoration:none;font-size:20px;">←</a>
+  <div style="width:52px;height:52px;border-radius:50%;background:var(--teal-bg);display:flex;align-items:center;justify-content:center;font-size:28px;">{{ aluno.avatar }}</div>
+  <div>
+    <div style="font-size:20px;font-weight:700;color:var(--branco);">{{ aluno.nome }}</div>
+    <div class="text-muted">{% if turma %}Turma: {{ turma }}{% else %}Sem turma{% endif %} · {{ stats.sessoes }} sessão(ões)</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid mb-20">
+  {% set pct = stats.aproveitamento %}
+  {% set cor_pct = '#4ADE80' if pct >= 70 else ('#F4A261' if pct >= 40 else '#E76F51') %}
+  <div class="stat-card">
+    <div class="stat-num" style="color:{{ cor_pct }};">{{ pct }}%</div>
+    <div class="stat-lbl">Aproveitamento</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--teal);">{{ stats.total_acertos }}</div>
+    <div class="stat-lbl">Acertos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--amarelo);">{{ stats.conquistas }}</div>
+    <div class="stat-lbl">Conquistas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--roxo);">{{ stats.modulos_iniciados }}</div>
+    <div class="stat-lbl">Módulos</div>
+  </div>
+</div>
+
+<!-- Diagnóstico -->
+<div style="background:{% if pct >= 70 %}var(--vrd-bg){% elif pct >= 40 %}var(--lrj-bg){% else %}var(--err-bg){% endif %};border-radius:10px;padding:12px 16px;margin-bottom:20px;">
+  <span style="font-size:14px;font-weight:700;color:{% if pct >= 70 %}var(--verde){% elif pct >= 40 %}var(--laranja){% else %}var(--erro){% endif %};">
+    {% if pct >= 70 %}🌟 Ótimo desempenho!{% elif pct >= 40 %}📈 Em progresso — continue incentivando{% else %}💪 Precisa de atenção especial{% endif %}
+  </span>
+</div>
+
+<!-- Progresso por módulo -->
+<div class="section-label">PROGRESSO POR MÓDULO</div>
+{% for chave, (nome_mod, icone, cor, total_niveis) in modulos.items() %}
+{% set d = aluno.get(chave, {"nivel_atual": 1, "acertos_totais": 0, "tentativas_totais": 0}) %}
+{% set pct_mod = (d.acertos_totais / d.tentativas_totais * 100) | int if d.tentativas_totais > 0 else 0 %}
+<div class="card mb-8">
+  <div style="height:3px;background:{{ cor }};"></div>
+  <div class="card-body" style="padding:12px 16px;">
+    <div class="flex justify-between items-center mb-8">
+      <span style="font-size:14px;font-weight:700;color:var(--branco);">{{ icone }} {{ nome_mod }}</span>
+      <span class="badge" style="background:{{ cor }}22;color:{{ cor }};">Nível {{ d.nivel_atual }}/{{ total_niveis }}</span>
+    </div>
+    <div class="bar-wrap mb-8"><div class="bar-fill" style="width:{{ pct_mod }}%;background:{{ cor }};"></div></div>
+    <div class="text-muted">
+      {% if d.tentativas_totais > 0 %}{{ d.acertos_totais }} acertos de {{ d.tentativas_totais }} perguntas ({{ pct_mod }}%)
+      {% else %}Ainda não iniciado{% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% if aluno.conquistas %}
+<div class="section-label mt-24">CONQUISTAS</div>
+{% for c in aluno.conquistas %}
+<div style="display:flex;align-items:center;gap:10px;background:var(--aml-bg);border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+  <span style="font-size:20px;">{{ c.split(' ')[0] }}</span>
+  <span style="font-size:13px;font-weight:600;color:var(--amarelo);">{{ c.split(' ',1)[1] }}</span>
+</div>
+{% endfor %}
+{% endif %}
+{% endblock %}

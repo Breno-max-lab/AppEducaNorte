@@ -1,0 +1,39 @@
+# ──────────────────────────────────────────────────────────
+#  docker-compose.yml — EducaNorte / Assistente Ribeirinho
+#
+#  Uso rápido:
+#    docker compose up --build
+#
+#  Acesso:
+#    http://localhost:5000
+# ──────────────────────────────────────────────────────────
+
+services:
+  ribeirinho:
+    build: .
+    container_name: educaNorte
+    ports:
+      - "5000:5000"
+    volumes:
+      # Persiste os dados dos alunos e turmas fora do container
+      # (sem isso, tudo se perde ao reiniciar)
+      - ./dados:/app/dados
+    environment:
+      - PORT=5000
+    restart: unless-stopped   # reinicia automaticamente se cair
+
+  # ── Opcional: Ollama (IA local) ──────────────────────────
+  # Descomente o bloco abaixo se quiser usar o módulo de IA
+  # com o modelo llama3.2 rodando junto no servidor.
+  #
+  # ollama:
+  #   image: ollama/ollama
+  #   container_name: ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+
+# volumes:
+#   ollama_data:

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EducaNorte — Escolha seu módulo</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100%;
+  background: #060d1a;
+  font-family: 'Nunito', sans-serif;
+  color: #F0EDE6;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(26,58,107,.5) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.grid {
+  position: fixed; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(46,109,180,.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 90% 90% at 50% 0%, black 0%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 0%, black 0%, transparent 80%);
+}
+
+/* ── Topbar ── */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 44px 24px 0;
+  position: relative; z-index: 1;
+}
+.back-link {
+  color: rgba(255,255,255,.35); font-size: 20px;
+  text-decoration: none; transition: color .15s; line-height: 1;
+}
+.back-link:hover { color: #E8C547; }
+
+/* ── Container ── */
+.container {
+  max-width: 480px; margin: 0 auto;
+  padding: 30px 22px 48px;
+  position: relative; z-index: 1;
+}
+
+/* Títulos */
+.titulo {
+  font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700;
+  color: #F0EDE6; margin-bottom: 6px;
+  opacity: 0; animation: up .4s .05s ease forwards;
+}
+.subtitulo {
+  font-size: 13px; color: rgba(255,255,255,.38);
+  margin-bottom: 26px; line-height: 1.5;
+  opacity: 0; animation: up .4s .12s ease forwards;
+}
+
+/* ── Cards de módulo — animados por ID, sem nth-child ── */
+.modulo-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 14px;
+  border-radius: 16px;
+  border: 2px solid;
+  text-decoration: none; color: inherit;
+  margin-bottom: 12px;
+  transition: transform .15s, filter .15s;
+  position: relative; overflow: hidden;
+  /* Estado inicial: invisível */
+  opacity: 0; transform: translateY(12px);
+}
+.modulo-card:hover  { transform: translateY(-2px); }
+.modulo-card:active { transform: scale(.98); }
+
+/* Animações individuais — IDs garantem independência do nth-child */
+#card-infantil    { animation: up .42s .20s ease forwards; }
+#card-fundamental { animation: up .42s .32s ease forwards; }
+#card-medio       { animation: up .42s .44s ease forwards; }
+
+/* Cores por módulo — sem color-mix, tudo rgba direto */
+#card-infantil {
+  background: rgba(255, 209, 102, .07);
+  border-color: rgba(255, 209, 102, .28);
+}
+#card-infantil:hover {
+  background: rgba(255, 209, 102, .13);
+  border-color: rgba(255, 209, 102, .55);
+}
+
+#card-fundamental {
+  background: rgba(0, 201, 167, .07);
+  border-color: rgba(0, 201, 167, .28);
+}
+#card-fundamental:hover {
+  background: rgba(0, 201, 167, .13);
+  border-color: rgba(0, 201, 167, .55);
+}
+
+#card-medio {
+  background: rgba(155, 114, 207, .07);
+  border-color: rgba(155, 114, 207, .28);
+}
+#card-medio:hover {
+  background: rgba(155, 114, 207, .13);
+  border-color: rgba(155, 114, 207, .55);
+}
+
+/* Ícone */
+.mod-icone {
+  width: 50px; height: 50px; flex-shrink: 0;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+}
+#card-infantil    .mod-icone { background: rgba(255,209,102,.14); border: 1px solid rgba(255,209,102,.22); }
+#card-fundamental .mod-icone { background: rgba(0,201,167,.14);   border: 1px solid rgba(0,201,167,.22); }
+#card-medio       .mod-icone { background: rgba(155,114,207,.14); border: 1px solid rgba(155,114,207,.22); }
+
+/* Info */
+.mod-info { flex: 1; min-width: 0; }
+.mod-nome { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
+#card-infantil    .mod-nome { color: #FFD166; }
+#card-fundamental .mod-nome { color: #00C9A7; }
+#card-medio       .mod-nome { color: #B89FE0; }
+
+.mod-desc { font-size: 11px; color: rgba(255,255,255,.4); line-height: 1.4; }
+
+/* Badge */
+.mod-badge {
+  font-size: 10px; font-weight: 800; letter-spacing: .05em;
+  padding: 4px 10px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+}
+#card-infantil    .mod-badge { background: rgba(255,209,102,.14); color: #FFD166; border: 1px solid rgba(255,209,102,.28); }
+#card-fundamental .mod-badge { background: rgba(0,201,167,.14);   color: #00C9A7; border: 1px solid rgba(0,201,167,.28); }
+#card-medio       .mod-badge { background: rgba(155,114,207,.14); color: #B89FE0; border: 1px solid rgba(155,114,207,.28); }
+
+/* Seta */
+.seta { font-size: 18px; flex-shrink: 0; opacity: .3; transition: opacity .15s, transform .2s; }
+.modulo-card:hover .seta { opacity: 1; transform: translateX(4px); }
+#card-infantil:hover    .seta { color: #FFD166; }
+#card-fundamental:hover .seta { color: #00C9A7; }
+#card-medio:hover       .seta { color: #B89FE0; }
+
+/* Nota */
+.nota {
+  text-align: center; font-size: 11px; color: rgba(255,255,255,.22);
+  margin-top: 4px; margin-bottom: 26px; line-height: 1.6;
+  opacity: 0; animation: fadeIn .5s .60s ease forwards;
+}
+.nota strong { color: rgba(255,255,255,.38); }
+
+/* ── Divisor ── */
+.divisor {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  opacity: 0; animation: fadeIn .5s .68s ease forwards;
+}
+.div-linha  { flex: 1; height: 1px; background: rgba(255,255,255,.07); }
+.div-texto  { font-size: 10px; font-weight: 800; color: rgba(255,255,255,.18); letter-spacing: .12em; }
+
+/* ── Botão Professor — sem mostrar senha ── */
+#card-professor {
+  display: flex; align-items: center; gap: 14px;
+  width: 100%; padding: 14px 16px;
+  background: rgba(155,114,207,.06);
+  border: 1.5px solid rgba(155,114,207,.18);
+  border-radius: 14px;
+  cursor: pointer; text-decoration: none; color: inherit;
+  transition: background .15s, border-color .15s, transform .12s;
+  opacity: 0; animation: up .42s .74s ease forwards;
+}
+#card-professor:hover {
+  background: rgba(155,114,207,.12);
+  border-color: rgba(155,114,207,.4);
+  transform: translateY(-1px);
+}
+#card-professor:active { transform: scale(.98); }
+
+.prof-icone {
+  width: 44px; height: 44px; border-radius: 11px;
+  background: rgba(155,114,207,.14); border: 1px solid rgba(155,114,207,.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; flex-shrink: 0;
+}
+.prof-info { flex: 1; }
+.prof-titulo { font-size: 14px; font-weight: 800; color: #B89FE0; margin-bottom: 2px; }
+.prof-desc   { font-size: 11px; color: rgba(255,255,255,.3); }
+.prof-seta   { font-size: 16px; color: rgba(155,114,207,.3); transition: transform .2s, color .15s; flex-shrink: 0; }
+#card-professor:hover .prof-seta { transform: translateX(4px); color: #9B72CF; }
+
+@keyframes up     { to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn { to { opacity:1; } }
+</style>
+</head>
+<body>
+<div class="grid"></div>
+
+<div class="topbar">
+  <a href="/" class="back-link">←</a>
+</div>
+
+<div class="container">
+
+  <h1 class="titulo">Qual é a sua turma?</h1>
+  <p class="subtitulo">Escolha o módulo de acordo com sua série ou faixa etária.</p>
+
+  <!-- Cada card tem ID único — sem nth-child -->
+  <a id="card-infantil" href="/infantil-direto" class="modulo-card">
+    <div class="mod-icone">🌱</div>
+    <div class="mod-info">
+      <div class="mod-nome">Infantil</div>
+      <div class="mod-desc">Alfabetização inicial · Imagens, sons e brincadeiras</div>
+    </div>
+    <span class="mod-badge">Até 5º ano</span>
+    <span class="seta">›</span>
+  </a>
+
+  <a id="card-fundamental" href="/login?modulo=fundamental" class="modulo-card">
+    <div class="mod-icone">📚</div>
+    <div class="mod-info">
+      <div class="mod-nome">Fundamental</div>
+      <div class="mod-desc">Português, Matemática, Ciências, História, Geografia</div>
+    </div>
+    <span class="mod-badge">6º ao 9º ano</span>
+    <span class="seta">›</span>
+  </a>
+
+  <a id="card-medio" href="/login?modulo=medio" class="modulo-card">
+    <div class="mod-icone">🎓</div>
+    <div class="mod-info">
+      <div class="mod-nome">Médio / Adulto</div>
+      <div class="mod-desc">Todas as disciplinas + preparação para o ENEM</div>
+    </div>
+    <span class="mod-badge">1º ao 3º ano</span>
+    <span class="seta">›</span>
+  </a>
+
+  <p class="nota">
+    <strong>Infantil</strong> entra direto.
+    <strong>Fundamental e Médio</strong> exigem login.
+  </p>
+
+  <!-- Divisor -->
+  <div class="divisor">
+    <div class="div-linha"></div>
+    <span class="div-texto">ACESSO PROFESSOR</span>
+    <div class="div-linha"></div>
+  </div>
+
+  <!-- Botão professor — leva ao login, sem expor senha -->
+  <a id="card-professor" href="/professor">
+    <div class="prof-icone">👩‍🏫</div>
+    <div class="prof-info">
+      <div class="prof-titulo">Painel do Professor</div>
+      <div class="prof-desc">Turmas, alunos, atividades e relatórios</div>
+    </div>
+    <span class="prof-seta">›</span>
+  </a>
+
+</div>
+</body>
+</html>

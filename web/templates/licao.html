@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+{% block title %}{{ area | capitalize }} — Assistente Ribeirinho{% endblock %}
+{% block nav_ativ %}active{% endblock %}
+
+{% block head %}
+<style>
+  .licao-topbar { background: var(--topbar); border-bottom: 1px solid var(--borda); padding: 0 16px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .progress-licao { height: 4px; background: #1A2E3E; position: sticky; top: 52px; z-index: 99; }
+  .progress-licao-fill { height: 4px; background: var(--teal); transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+  .opcao { display: block; width: 100%; padding: 14px 16px; background: var(--card); color: var(--txt); font-size: 14px; border: 2px solid transparent; border-radius: 10px; cursor: pointer; text-align: left; margin-bottom: 10px; transition: all 0.15s; -webkit-appearance: none; }
+  .opcao:active { transform: scale(0.98); }
+  .opcao.selecionada { border-color: var(--teal); background: var(--teal-bg); color: var(--teal); }
+  .opcao.correta { border-color: var(--teal); background: var(--teal-bg); color: var(--teal); animation: pulseOk 0.4s ease; }
+  .opcao.errada  { border-color: var(--erro); background: var(--err-bg); color: var(--erro); animation: shake 0.35s ease; }
+
+  @keyframes pulseOk { 0%{transform:scale(1)} 50%{transform:scale(1.03)} 100%{transform:scale(1)} }
+  @keyframes shake   { 0%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} 100%{transform:translateX(0)} }
+  @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes popIn   { 0%{transform:scale(0.6);opacity:0} 70%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+
+  .feedback { text-align: center; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 15px; margin: 12px 0; display: none; animation: slideUp 0.25s ease; }
+  .feedback.ok  { background: var(--teal-bg); color: var(--teal); }
+  .feedback.err { background: var(--err-bg); color: var(--erro); }
+  .dica { background: var(--lrj-bg); color: var(--laranja); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 12px; display: none; animation: slideUp 0.2s ease; }
+
+  /* Conquista popup */
+  .conquista-popup { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--aml-bg); border: 2px solid var(--amarelo); border-radius: 14px; padding: 12px 20px; font-size: 14px; font-weight: 700; color: var(--amarelo); z-index: 300; opacity: 0; transition: all 0.4s ease; pointer-events: none; white-space: nowrap; }
+  .conquista-popup.visivel { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  /* Resultado */
+  .resultado { text-align: center; padding: 32px 16px; animation: slideUp 0.3s ease; }
+  .resultado .estrelas { font-size: 52px; margin-bottom: 12px; animation: popIn 0.5s ease; display: block; }
+  .nivel-up { background: var(--aml-bg); color: var(--amarelo); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-weight: 600; animation: popIn 0.5s ease 0.2s both; }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="licao-topbar">
+  <a href="/" style="color: var(--txt2); font-size: 22px; text-decoration: none; line-height: 1;">←</a>
+  <span style="font-size: 13px; font-weight: 700; color: var(--teal);">
+    {{ "Leitura" if area == "leitura" else "Matemática" }} · Nível {{ nivel }}: {{ licao.titulo }}
+  </span>
+  <span id="pts" style="font-size: 13px; color: var(--verde); font-weight: 700;">✓ 0</span>
+</div>
+<div class="progress-licao">
+  <div class="progress-licao-fill" id="barra" style="width: 0%;"></div>
+</div>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+
+<!-- Popup de conquista -->
+<div class="conquista-popup" id="conquista-popup"></div>
+
+<div class="main" style="padding-bottom: 24px;">
+
+  {% if licao.texto or licao.contexto %}
+  <div style="background: var(--card); border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; border-left: 3px solid var(--teal);">
+    <p style="font-size: 13px; color: var(--txt2); font-style: italic; line-height: 1.6;">
+      📖 {{ licao.texto or licao.contexto }}
+    </p>
+  </div>
+  {% endif %}
+
+  <div id="area-pergunta"></div>
+  <div id="area-resultado" style="display: none;"></div>
+
+</div>
+
+<script>
+const AREA     = "{{ area }}";
+const NIVEL    = {{ nivel }};
+const PERGUNTAS = {{ licao.perguntas | tojson }};
+const TOTAL    = PERGUNTAS.length;
+
+let indice     = 0;
+let acertos    = 0;
+let tentativas = 0;
+let respondeu  = false;
+let respostaSelecionada = null;
+
+// ── Sons via Web Audio API (sem arquivos externos) ──
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let ctx = null;
+
+function som(tipo) {
+  try {
+    if (!ctx) ctx = new AudioCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (tipo === "acerto") {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+      osc.start(); osc.stop(ctx.currentTime + 0.5);
+    } else if (tipo === "erro") {
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.setValueAtTime(200, ctx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+    } else if (tipo === "nivel") {
+      [523,659,784,1047].forEach((f,i) => {
+        const o2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.frequency.value = f;
+        g2.gain.setValueAtTime(0.25, ctx.currentTime + i*0.12);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.12 + 0.3);
+        o2.start(ctx.currentTime + i*0.12);
+        o2.stop(ctx.currentTime + i*0.12 + 0.3);
+      });
+    }
+  } catch(e) {}
+}
+
+function mostrarConquista(nome) {
+  const el = document.getElementById("conquista-popup");
+  el.textContent = "🏆 Conquista: " + nome;
+  el.classList.add("visivel");
+  som("nivel");
+  setTimeout(() => el.classList.remove("visivel"), 3000);
+}
+
+function atualizar() {
+  document.getElementById("pts").textContent = "✓ " + acertos;
+  document.getElementById("barra").style.width = (indice / TOTAL * 100) + "%";
+}
+
+function renderPergunta() {
+  if (indice >= TOTAL) { mostrarResultado(); return; }
+  respondeu = false; tentativas = 0; respostaSelecionada = null;
+  atualizar();
+  const p = PERGUNTAS[indice];
+  let html = `<p style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;line-height:1.5;animation:slideUp 0.25s ease;">❓ ${p.enunciado}</p><div id="opcoes">`;
+  p.opcoes.forEach((op, i) => {
+    html += `<button class="opcao" onclick="selecionar(this,'${op.replace(/'/g,"\\'")}')">
+               ${String.fromCharCode(65+i)}.  ${op}</button>`;
+  });
+  html += `</div>
+    <div class="dica" id="dica"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="btn mt-16" id="btn-confirmar" onclick="confirmar()">Confirmar resposta</button>`;
+  document.getElementById("area-pergunta").innerHTML = html;
+}
+
+function selecionar(el, valor) {
+  if (respondeu) return;
+  document.querySelectorAll(".opcao").forEach(b => b.classList.remove("selecionada"));
+  el.classList.add("selecionada");
+  respostaSelecionada = valor;
+}
+
+async function confirmar() {
+  if (!respostaSelecionada) {
+    const fb = document.getElementById("feedback");
+    fb.textContent = "⚠ Selecione uma opção!";
+    fb.className = "feedback err"; fb.style.display = "block"; return;
+  }
+  const res  = await fetch("/api/responder", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ area: AREA, nivel: NIVEL, indice, resposta: respostaSelecionada })
+  });
+  const data = await res.json();
+  tentativas++;
+
+  const fb   = document.getElementById("feedback");
+  const dica = document.getElementById("dica");
+  const btn  = document.getElementById("btn-confirmar");
+
+  document.querySelectorAll(".opcao").forEach(b => {
+    if (b.textContent.trim().slice(3).trim() === respostaSelecionada) {
+      b.classList.remove("selecionada");
+      b.classList.add(data.correta ? "correta" : "errada");
+    }
+  });
+
+  if (data.correta) {
+    acertos++;
+    som("acerto");
+    fb.textContent = "✓  Correto! Muito bem!";
+    fb.className = "feedback ok"; fb.style.display = "block";
+    dica.style.display = "none";
+    respondeu = true;
+    btn.textContent = "Próxima →"; btn.onclick = proxima;
+  } else {
+    som("erro");
+    fb.textContent = "✗  Não foi dessa vez!";
+    fb.className = "feedback err"; fb.style.display = "block";
+    if (tentativas === 1) {
+      dica.textContent = "💡 " + data.dica; dica.style.display = "block";
+    } else {
+      dica.textContent = "Resposta correta: " + data.resposta_certa;
+      dica.style.display = "block";
+      respondeu = true; btn.textContent = "Próxima →"; btn.onclick = proxima;
+    }
+  }
+  atualizar();
+}
+
+function proxima() {
+  indice++; respostaSelecionada = null; renderPergunta();
+}
+
+async function mostrarResultado() {
+  document.getElementById("barra").style.width = "100%";
+  document.getElementById("area-pergunta").style.display = "none";
+
+  const pct = acertos / TOTAL;
+  let estrelas, msg, cor;
+  if (pct >= 0.8)      { estrelas = "⭐⭐⭐"; msg = "Excelente trabalho!"; cor = "var(--teal)"; }
+  else if (pct >= 0.5) { estrelas = "⭐⭐";   msg = "Bom trabalho!";       cor = "var(--laranja)"; }
+  else                 { estrelas = "⭐";     msg = "Continue tentando!";  cor = "var(--txt3)"; }
+
+  const res  = await fetch("/api/finalizar", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ area: AREA, nivel: NIVEL, acertos, total: TOTAL })
+  });
+  const data = await res.json();
+
+  if (data.avancou) som("nivel");
+  else if (pct >= 0.5) som("acerto");
+
+  let nivelHtml = "";
+  if (data.avancou) {
+    nivelHtml = `<div class="nivel-up">🎉 Você avançou para o Nível ${data.novo_nivel}!</div>`;
+  }
+
+  document.getElementById("area-resultado").innerHTML = `
+    <div class="resultado">
+      <span class="estrelas">${estrelas}</span>
+      <h2 style="font-size:22px;font-weight:700;color:${cor};margin-bottom:6px;">${msg}</h2>
+      <p style="color:var(--txt2);margin-bottom:20px;">${acertos} de ${TOTAL} corretas</p>
+      ${nivelHtml}
+      <a href="/" class="btn">← Voltar ao menu</a>
+    </div>`;
+  document.getElementById("area-resultado").style.display = "block";
+
+  // Mostra conquistas novas
+  if (data.novas_conquistas && data.novas_conquistas.length > 0) {
+    setTimeout(() => mostrarConquista(data.novas_conquistas[0]), 600);
+  }
+}
+
+renderPergunta();
+</script>
+{% endblock %}

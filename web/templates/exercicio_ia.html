@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+{% block title %}Exercício com IA{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div class="topbar-logo">
+    <a href="/" style="color:var(--txt2);text-decoration:none;font-size:20px;margin-right:10px;">←</a>
+    <div class="logo-icon">🤖</div>
+    <span class="logo-text">Exercício com IA</span>
+  </div>
+  <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;
+    background:{% if ia_ok %}var(--teal-bg){% else %}var(--err-bg){% endif %};
+    color:{% if ia_ok %}var(--teal){% else %}var(--erro){% endif %};">
+    ● {% if ia_ok %}IA online{% else %}IA offline{% endif %}
+  </span>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  {% if not ia_ok %}
+  <!-- Banner IA offline — instruções corretas -->
+  <div style="background:#2A0A0A;border:1px solid #F87171;border-radius:14px;padding:18px;margin-bottom:20px;">
+    <div style="font-size:15px;font-weight:700;color:#F87171;margin-bottom:10px;">⚠️ IA não disponível</div>
+    <div style="font-size:13px;color:var(--txt2);line-height:1.8;">
+      O Ollama não está rodando no seu computador.<br>
+      Para ativar a IA, siga os passos:
+    </div>
+    <div style="background:#1A0808;border-radius:10px;padding:14px;margin-top:12px;font-size:13px;line-height:2;">
+      <div><span style="color:#F87171;font-weight:700;">1.</span> Baixe o Ollama em
+        <strong style="color:var(--teal);">ollama.com</strong> e instale</div>
+      <div><span style="color:#F87171;font-weight:700;">2.</span> Abra o terminal e execute:
+        <code style="background:#0E1E2A;padding:3px 8px;border-radius:6px;color:var(--teal);font-size:12px;">ollama pull llama3.2</code>
+      </div>
+      <div><span style="color:#F87171;font-weight:700;">3.</span> Em seguida inicie o servidor:
+        <code style="background:#0E1E2A;padding:3px 8px;border-radius:6px;color:var(--teal);font-size:12px;">ollama serve</code>
+      </div>
+      <div><span style="color:#F87171;font-weight:700;">4.</span> Recarregue esta página</div>
+    </div>
+    {% if modelos %}
+    <div style="margin-top:12px;font-size:12px;color:var(--txt3);">
+      Modelos instalados: {% for m in modelos %}<code style="background:#1A2E3E;padding:2px 6px;border-radius:4px;">{{ m }}</code> {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <!-- Badge modelo ativo -->
+  <div style="background:var(--teal-bg);border:1px solid var(--teal)44;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+    <span style="font-size:18px;">🤖</span>
+    <div>
+      <div style="font-size:12px;font-weight:700;color:var(--teal);">IA ativa e pronta</div>
+      <div style="font-size:11px;color:var(--txt3);">
+        Modelo: <code style="color:var(--teal);">{% if modelos %}{{ modelos[0] }}{% else %}llama3.2{% endif %}</code>
+        · Rodando offline no seu PC
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <p class="greeting-title" style="margin-bottom:4px;">Gerar Exercício</p>
+  <p class="greeting-sub" style="margin-bottom:20px;">A IA cria perguntas personalizadas sobre qualquer tema</p>
+
+  <!-- Formulário -->
+  <div style="background:var(--card);border-radius:14px;padding:18px;margin-bottom:20px;">
+
+    <label style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.06em;">TEMA</label>
+    <input id="tema" type="text"
+      placeholder="Ex: Pesca no Amazonas, Plantas medicinais, Rio Negro..."
+      style="width:100%;background:#0E1E2A;border:1px solid #1E3448;border-radius:8px;
+             padding:11px 14px;color:var(--txt);font-size:14px;margin:8px 0 16px;
+             box-sizing:border-box;outline:none;"
+      {% if not ia_ok %}disabled{% endif %}>
+
+    <!-- Sugestões de tema -->
+    {% if ia_ok %}
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+      {% for tema in ['Pesca no Amazonas','Plantas medicinais','Ciclo da água','História da Amazônia','Animais do rio'] %}
+      <button onclick="document.getElementById('tema').value='{{ tema }}'"
+        style="background:#1A2E3E;border:1px solid var(--borda);border-radius:16px;
+               padding:4px 12px;font-size:12px;color:var(--txt3);cursor:pointer;transition:all .15s;"
+        onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'"
+        onmouseout="this.style.borderColor='var(--borda)';this.style.color='var(--txt3)'">
+        {{ tema }}
+      </button>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <label style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.06em;">DIFICULDADE</label>
+    <div style="display:flex;gap:8px;margin:8px 0 16px;">
+      {% for n, label, desc in [(1,'Fácil','Iniciante'),(2,'Médio','Intermediário'),(3,'Difícil','Avançado')] %}
+      <button onclick="setNivel({{ n }})" id="btn_nivel_{{ n }}"
+        style="flex:1;padding:10px 8px;border-radius:10px;
+               border:1px solid {% if n==1 %}var(--teal){% else %}#1E3448{% endif %};
+               background:{% if n==1 %}var(--teal-bg){% else %}transparent{% endif %};
+               color:{% if n==1 %}var(--teal){% else %}var(--txt3){% endif %};
+               font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;">
+        {{ label }}<br>
+        <span style="font-size:10px;font-weight:400;opacity:.7;">{{ desc }}</span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <label style="font-size:11px;font-weight:700;color:var(--txt3);letter-spacing:.06em;">PERGUNTAS</label>
+    <div style="display:flex;gap:8px;margin:8px 0 18px;">
+      {% for q in [2, 3, 5] %}
+      <button onclick="setQtd({{ q }})" id="btn_qtd_{{ q }}"
+        style="flex:1;padding:10px 8px;border-radius:10px;
+               border:1px solid {% if q==3 %}var(--teal){% else %}#1E3448{% endif %};
+               background:{% if q==3 %}var(--teal-bg){% else %}transparent{% endif %};
+               color:{% if q==3 %}var(--teal){% else %}var(--txt3){% endif %};
+               font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;">
+        {{ q }}
+      </button>
+      {% endfor %}
+    </div>
+
+    <button onclick="gerarExercicio()" id="btnGerar" {% if not ia_ok %}disabled{% endif %}
+      style="width:100%;background:{% if ia_ok %}var(--teal){% else %}#1E3448{% endif %};
+             color:{% if ia_ok %}#000{% else %}var(--txt3){% endif %};
+             border:none;border-radius:10px;padding:14px;
+             font-size:15px;font-weight:700;
+             cursor:{% if ia_ok %}pointer{% else %}not-allowed{% endif %};transition:opacity .15s;">
+      🤖 Gerar exercício com IA
+    </button>
+  </div>
+
+  <!-- Loading animado -->
+  <div id="loading" style="display:none;text-align:center;padding:36px 20px;color:var(--txt3);">
+    <div style="font-size:40px;margin-bottom:14px;animation:spin 2s linear infinite;display:inline-block;">⚙️</div>
+    <div style="font-size:15px;font-weight:600;color:var(--txt2);">A IA está criando seu exercício...</div>
+    <div style="font-size:12px;margin-top:8px;">Isso pode levar até 60 segundos</div>
+  </div>
+
+  <!-- Exercício gerado -->
+  <div id="exercicio" style="display:none;">
+    <div style="background:var(--card);border-radius:14px;padding:16px;margin-bottom:16px;border-left:4px solid var(--teal);">
+      <div id="ex_titulo" style="font-size:17px;font-weight:700;color:var(--branco);margin-bottom:6px;"></div>
+      <div id="ex_texto" style="font-size:13px;color:var(--txt2);line-height:1.7;"></div>
+    </div>
+    <div id="ex_perguntas"></div>
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <button onclick="novoExercicio()"
+        style="flex:1;background:transparent;border:1px solid var(--teal);color:var(--teal);
+               border-radius:10px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;">
+        🔄 Gerar outro
+      </button>
+      <a href="/"
+        style="flex:1;background:var(--card);border:1px solid var(--borda);color:var(--txt2);
+               border-radius:10px;padding:13px;font-size:14px;font-weight:700;
+               text-align:center;text-decoration:none;">
+        ← Início
+      </a>
+    </div>
+  </div>
+
+</div>
+
+<style>
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+</style>
+
+<script>
+let nivelAtual = 1, qtdAtual = 3, licaoGerada = null;
+
+function setNivel(n) {
+  nivelAtual = n;
+  [1,2,3].forEach(i => {
+    const b = document.getElementById("btn_nivel_" + i);
+    const ativo = i === n;
+    b.style.border      = ativo ? "1px solid var(--teal)" : "1px solid #1E3448";
+    b.style.background  = ativo ? "var(--teal-bg)"        : "transparent";
+    b.style.color       = ativo ? "var(--teal)"            : "var(--txt3)";
+  });
+}
+
+function setQtd(q) {
+  qtdAtual = q;
+  [2,3,5].forEach(i => {
+    const b = document.getElementById("btn_qtd_" + i);
+    const ativo = i === q;
+    b.style.border     = ativo ? "1px solid var(--teal)" : "1px solid #1E3448";
+    b.style.background = ativo ? "var(--teal-bg)"        : "transparent";
+    b.style.color      = ativo ? "var(--teal)"            : "var(--txt3)";
+  });
+}
+
+async function gerarExercicio() {
+  const tema = document.getElementById("tema").value.trim();
+  if (!tema) {
+    document.getElementById("tema").style.borderColor = "#F87171";
+    document.getElementById("tema").placeholder = "⚠️ Digite um tema primeiro!";
+    setTimeout(() => {
+      document.getElementById("tema").style.borderColor = "#1E3448";
+      document.getElementById("tema").placeholder = "Ex: Pesca no Amazonas, Plantas medicinais...";
+    }, 2000);
+    return;
+  }
+  document.getElementById("loading").style.display    = "block";
+  document.getElementById("exercicio").style.display  = "none";
+  document.getElementById("btnGerar").disabled        = true;
+  try {
+    const r = await fetch("/api/ia/gerar", {
+      method:  "POST",
+      headers: {"Content-Type": "application/json"},
+      body:    JSON.stringify({tema, nivel: nivelAtual, quantidade: qtdAtual})
+    });
+    const d = await r.json();
+    if (d.erro) { mostrarErro(d.erro); return; }
+    licaoGerada = d;
+    renderExercicio();
+  } catch(e) {
+    mostrarErro("Erro de conexão com a IA. Verifique se o servidor está rodando.");
+  } finally {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("btnGerar").disabled     = false;
+  }
+}
+
+function mostrarErro(msg) {
+  document.getElementById("exercicio").innerHTML = `
+    <div style="background:#2A0A0A;border:1px solid #F87171;border-radius:12px;padding:16px;text-align:center;">
+      <div style="font-size:24px;margin-bottom:8px;">⚠️</div>
+      <div style="font-size:14px;color:#F87171;font-weight:700;">${msg}</div>
+    </div>`;
+  document.getElementById("exercicio").style.display = "block";
+}
+
+function renderExercicio() {
+  document.getElementById("ex_titulo").textContent = licaoGerada.titulo || "Exercício";
+  document.getElementById("ex_texto").textContent  = licaoGerada.texto  || "";
+  const container = document.getElementById("ex_perguntas");
+  container.innerHTML = "";
+  licaoGerada.perguntas.forEach((p, i) => {
+    const div = document.createElement("div");
+    div.style.cssText = "background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;";
+    div.innerHTML = `
+      <div style="font-size:10px;color:var(--txt3);margin-bottom:6px;letter-spacing:.06em;">
+        PERGUNTA ${i+1} DE ${licaoGerada.perguntas.length}
+      </div>
+      <div style="font-size:14px;font-weight:600;color:var(--branco);margin-bottom:12px;line-height:1.5;">
+        ${p.enunciado}
+      </div>
+      <div id="opcoes_${i}" style="display:flex;flex-direction:column;gap:8px;">
+        ${p.opcoes.map(op => `
+          <button onclick="responder(${i}, '${op.replace(/'/g,"\\'").replace(/"/g,'\\"')}', this)"
+            style="text-align:left;background:#0E1E2A;border:1px solid #1E3448;border-radius:8px;
+                   padding:11px 14px;color:var(--txt2);font-size:13px;cursor:pointer;transition:all .15s;">
+            ${op}
+          </button>`).join("")}
+      </div>
+      <div id="feedback_${i}" style="display:none;margin-top:10px;font-size:13px;
+           border-radius:8px;padding:10px;font-weight:600;"></div>`;
+    container.appendChild(div);
+  });
+  document.getElementById("exercicio").style.display = "block";
+}
+
+function responder(idx, resposta, btn) {
+  const p = licaoGerada.perguntas[idx];
+  const correta = resposta.trim().toLowerCase() === p.resposta.trim().toLowerCase();
+  document.querySelectorAll(`#opcoes_${idx} button`).forEach(b => {
+    b.disabled = true;
+    if (b.textContent.trim() === p.resposta.trim()) {
+      b.style.border = "1px solid #4ADE80"; b.style.color = "#4ADE80"; b.style.background = "#0A2A0A";
+    }
+  });
+  if (!correta) {
+    btn.style.border = "1px solid #F87171"; btn.style.color = "#F87171"; btn.style.background = "#2A0A0A";
+  }
+  const fb = document.getElementById(`feedback_${idx}`);
+  fb.style.display    = "block";
+  fb.style.background = correta ? "#0A2A0A" : "#2A0A0A";
+  fb.style.color      = correta ? "#4ADE80" : "#F87171";
+  fb.textContent      = correta ? "✅ Correto!" : `❌ Dica: ${p.dica}`;
+}
+
+function novoExercicio() {
+  document.getElementById("exercicio").style.display = "none";
+  licaoGerada = null;
+  document.getElementById("tema").value = "";
+  document.getElementById("tema").focus();
+}
+</script>
+{% endblock %}

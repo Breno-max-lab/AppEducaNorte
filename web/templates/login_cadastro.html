@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EducaNorte — Entrar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  min-height: 100%; background: #0A1628;
+  font-family: 'Nunito', sans-serif; color: #F0EDE6;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(26,58,107,.55) 0%, transparent 70%);
+  pointer-events: none;
+}
+.grid {
+  position: fixed; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(46,109,180,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46,109,180,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Topbar */
+.topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 48px 28px 0; position: relative; z-index: 1;
+}
+.back-link {
+  color: rgba(255,255,255,.4); font-size: 20px; text-decoration: none;
+  transition: color .15s;
+}
+.back-link:hover { color: #E8C547; }
+
+/* Container */
+.container {
+  max-width: 420px; margin: 0 auto;
+  padding: 32px 28px 48px; position: relative; z-index: 1;
+}
+
+/* Badge do módulo */
+.mod-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--cor-bg); border: 1px solid var(--cor-borda);
+  color: var(--cor); font-size: 11px; font-weight: 800;
+  letter-spacing: .08em; padding: 5px 14px; border-radius: 20px;
+  margin-bottom: 20px;
+}
+
+/* Tabs Login / Cadastro */
+.tabs {
+  display: flex; gap: 0;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px; padding: 4px;
+  margin-bottom: 28px;
+}
+.tab-btn {
+  flex: 1; padding: 11px;
+  background: transparent; border: none;
+  border-radius: 11px; cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  font-size: 13px; font-weight: 700;
+  color: rgba(255,255,255,.4);
+  transition: background .2s, color .2s;
+}
+.tab-btn.ativo {
+  background: rgba(255,255,255,.08);
+  color: #F0EDE6;
+}
+
+/* Formulários */
+.form-panel { display: none; }
+.form-panel.ativo { display: block; }
+
+.titulo-form {
+  font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700;
+  margin-bottom: 6px; color: #F0EDE6;
+}
+.desc-form {
+  font-size: 13px; color: rgba(255,255,255,.4);
+  margin-bottom: 26px; line-height: 1.6;
+}
+
+.lbl {
+  display: block; font-size: 11px; font-weight: 800;
+  color: var(--cor); letter-spacing: .1em; margin-bottom: 7px;
+}
+.inp-wrap { position: relative; margin-bottom: 18px; }
+.inp {
+  width: 100%; padding: 14px 16px;
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 12px; color: #F0EDE6;
+  font-size: 15px; font-family: 'Nunito', sans-serif;
+  outline: none; transition: border-color .2s, background .2s;
+}
+.inp:focus { border-color: var(--cor); background: rgba(255,255,255,.08); }
+.inp::placeholder { color: rgba(255,255,255,.22); }
+.inp-ico {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-size: 16px; opacity: .35; pointer-events: none;
+}
+
+/* Erro */
+.erro-box {
+  background: rgba(231,111,81,.12);
+  border: 1px solid rgba(231,111,81,.3);
+  border-radius: 10px; padding: 11px 14px;
+  font-size: 13px; color: #E76F51; font-weight: 700;
+  margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+}
+
+/* Botão submit */
+.btn-submit {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--cor-dark, #C9A227), var(--cor, #E8C547));
+  color: #0A1628;
+  font-family: 'Cinzel', serif; font-size: 14px; font-weight: 700;
+  letter-spacing: .1em; border: none; border-radius: 50px;
+  cursor: pointer; margin-top: 4px;
+  box-shadow: 0 4px 20px var(--cor-shadow, rgba(201,162,39,.35));
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 28px var(--cor-shadow, rgba(201,162,39,.5)); }
+.btn-submit:active { transform: scale(.97); }
+
+/* Divisor */
+.divisor {
+  display: flex; align-items: center; gap: 12px;
+  margin: 22px 0; color: rgba(255,255,255,.2); font-size: 12px;
+}
+.divisor::before, .divisor::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.1);
+}
+
+.link-toggle {
+  text-align: center; font-size: 13px; color: rgba(255,255,255,.35);
+  margin-top: 20px;
+}
+.link-toggle a {
+  color: var(--cor); font-weight: 700; text-decoration: none;
+  transition: opacity .15s;
+}
+.link-toggle a:hover { opacity: .7; }
+
+/* Regra de senha */
+.senha-dica {
+  font-size: 11px; color: rgba(255,255,255,.25); margin-top: -12px;
+  margin-bottom: 18px; padding-left: 4px;
+}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+
+{% set info = {
+  'fundamental': {'nome':'Fundamental','icone':'📚','cor':'#00C9A7','cor_bg':'rgba(0,201,167,.1)','cor_borda':'rgba(0,201,167,.25)','cor_dark':'#0E8A75','cor_shadow':'rgba(0,201,167,.3)'},
+  'medio':       {'nome':'Médio / Adulto','icone':'🎓','cor':'#9B72CF','cor_bg':'rgba(155,114,207,.1)','cor_borda':'rgba(155,114,207,.25)','cor_dark':'#6A4A9B','cor_shadow':'rgba(155,114,207,.3)'},
+} %}
+{% set m = info.get(modulo, info.fundamental) %}
+
+<style>
+  :root {
+    --cor:        {{ m.cor }};
+    --cor-bg:     {{ m.cor_bg }};
+    --cor-borda:  {{ m.cor_borda }};
+    --cor-dark:   {{ m.cor_dark }};
+    --cor-shadow: {{ m.cor_shadow }};
+  }
+</style>
+
+<div class="topbar">
+  <a href="/escolher-modulo" class="back-link">←</a>
+</div>
+
+<div class="container">
+
+  <!-- Badge do módulo -->
+  <div class="mod-badge">{{ m.icone }} {{ m.nome }}</div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn {% if modo != 'cadastro' %}ativo{% endif %}"
+            onclick="mostrar('login')">Entrar</button>
+    <button class="tab-btn {% if modo == 'cadastro' %}ativo{% endif %}"
+            onclick="mostrar('cadastro')">Criar conta</button>
+  </div>
+
+  <!-- ── FORMULÁRIO LOGIN ── -->
+  <div id="painel-login" class="form-panel {% if modo != 'cadastro' %}ativo{% endif %}">
+    <h2 class="titulo-form">Bem-vindo de volta!</h2>
+    <p class="desc-form">Digite seu usuário e senha para continuar.</p>
+
+    {% if erro and modo != 'cadastro' %}
+    <div class="erro-box">⚠️ {{ erro }}</div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+      <input type="hidden" name="modulo" value="{{ modulo }}">
+
+      <label class="lbl">NOME DE USUÁRIO</label>
+      <div class="inp-wrap">
+        <input class="inp" type="text" name="usuario"
+               placeholder="seu_usuario" autocomplete="username"
+               value="{{ form_data.usuario if form_data else '' }}">
+        <span class="inp-ico">👤</span>
+      </div>
+
+      <label class="lbl">SENHA</label>
+      <div class="inp-wrap">
+        <input class="inp" type="password" name="senha"
+               placeholder="••••••••" autocomplete="current-password">
+        <span class="inp-ico">🔒</span>
+      </div>
+
+      <button class="btn-submit" type="submit">Entrar →</button>
+    </form>
+
+    <p class="link-toggle">Não tem conta? <a href="#" onclick="mostrar('cadastro')">Criar conta</a></p>
+  </div>
+
+  <!-- ── FORMULÁRIO CADASTRO ── -->
+  <div id="painel-cadastro" class="form-panel {% if modo == 'cadastro' %}ativo{% endif %}">
+    <h2 class="titulo-form">Criar conta</h2>
+    <p class="desc-form">Preencha seus dados para começar a aprender.</p>
+
+    {% if erro and modo == 'cadastro' %}
+    <div class="erro-box">⚠️ {{ erro }}</div>
+    {% endif %}
+
+    <form method="POST" action="/cadastrar">
+      <input type="hidden" name="modulo_ensino" value="{{ modulo }}">
+
+      <label class="lbl">NOME COMPLETO</label>
+      <div class="inp-wrap">
+        <input class="inp" type="text" name="nome_completo"
+               placeholder="Seu nome completo" autocomplete="name"
+               value="{{ form_data.nome_completo if form_data else '' }}">
+        <span class="inp-ico">✏️</span>
+      </div>
+
+      <label class="lbl">NOME DE USUÁRIO</label>
+      <div class="inp-wrap">
+        <input class="inp" type="text" name="usuario"
+               placeholder="seu_usuario (sem espaços)" autocomplete="username"
+               oninput="this.value=this.value.replace(/\s/g,'').toLowerCase()"
+               value="{{ form_data.usuario if form_data else '' }}">
+        <span class="inp-ico">👤</span>
+      </div>
+
+      <label class="lbl">SENHA</label>
+      <div class="inp-wrap">
+        <input class="inp" type="password" name="senha"
+               placeholder="Mínimo 4 caracteres" autocomplete="new-password">
+        <span class="inp-ico">🔒</span>
+      </div>
+      <p class="senha-dica">Use uma senha fácil de lembrar, difícil de adivinhar.</p>
+
+      <button class="btn-submit" type="submit">Criar minha conta →</button>
+    </form>
+
+    <p class="link-toggle">Já tem conta? <a href="#" onclick="mostrar('login')">Entrar</a></p>
+  </div>
+
+</div>
+
+<script>
+function mostrar(painel) {
+  document.getElementById('painel-login').classList.toggle('ativo', painel === 'login');
+  document.getElementById('painel-cadastro').classList.toggle('ativo', painel === 'cadastro');
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('ativo', (i === 0 && painel === 'login') || (i === 1 && painel === 'cadastro'));
+  });
+}
+</script>
+</body>
+</html>

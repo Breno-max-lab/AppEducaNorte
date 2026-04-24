@@ -1,0 +1,118 @@
+{% extends "prof_base.html" %}
+{% block title %}Turmas{% endblock %}
+
+{% set turmas_sidebar = turmas %}
+
+{% block content %}
+
+<div class="flex justify-between items-center mb-20">
+  <div>
+    <h2 style="font-size:20px;font-weight:700;color:var(--branco);">Minhas Turmas</h2>
+    <p class="text-muted">{{ turmas | length }} turma(s) · {{ total_alunos }} aluno(s) cadastrado(s)</p>
+  </div>
+  <button class="btn btn-primary" onclick="document.getElementById('modal-criar').style.display='flex'">＋ Nova turma</button>
+</div>
+
+<!-- Stats gerais -->
+<div class="stat-grid mb-20">
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--roxo);">{{ turmas | length }}</div>
+    <div class="stat-lbl">Turmas</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--teal);">{{ total_alunos }}</div>
+    <div class="stat-lbl">Alunos</div>
+  </div>
+  <div class="stat-card">
+    {% if turmas | length > 0 %}
+      {% set media_geral = (turmas | sum(attribute='stats.media') / turmas | length) | int %}
+    {% else %}
+      {% set media_geral = 0 %}
+    {% endif %}
+    <div class="stat-num" style="color:var(--verde);">{{ media_geral }}%</div>
+    <div class="stat-lbl">Média geral</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--amarelo);">{{ turmas | sum(attribute='ativ_count') }}</div>
+    <div class="stat-lbl">Atividades</div>
+  </div>
+</div>
+
+<!-- Cards de turmas -->
+{% if turmas %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+    {% for turma in turmas %}
+    {% set cor_media = '#4ADE80' if turma.stats.media >= 70 else ('#F4A261' if turma.stats.media >= 40 else '#E76F51') %}
+    <div class="card" style="transition:transform .15s;" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform=''">
+      <div style="height:80px;background:{{ turma.cor }}18;border-bottom:3px solid {{ turma.cor }};padding:16px;display:flex;align-items:flex-end;justify-content:space-between;">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:{{ turma.cor }};">{{ turma.nome }}</div>
+          <div style="font-size:11px;color:var(--txt3);">{{ turma.descricao or 'Sem descrição' }}</div>
+        </div>
+        <span style="font-size:10px;background:{{ turma.cor }}22;color:{{ turma.cor }};padding:3px 8px;border-radius:10px;font-weight:700;">{{ turma.codigo }}</span>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px;">
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:var(--txt);">{{ turma.stats.total }}</div>
+            <div style="font-size:10px;color:var(--txt3);">Alunos</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:{{ cor_media }};">{{ turma.stats.media }}%</div>
+            <div style="font-size:10px;color:var(--txt3);">Média</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:var(--amarelo);">{{ turma.ativ_count }}</div>
+            <div style="font-size:10px;color:var(--txt3);">Ativid.</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;color:var(--roxo);">{{ turma.avisos_count }}</div>
+            <div style="font-size:10px;color:var(--txt3);">Avisos</div>
+          </div>
+        </div>
+        <div class="bar-wrap mb-16">
+          <div class="bar-fill" style="width:{{ turma.stats.media }}%;background:{{ cor_media }};"></div>
+        </div>
+        <div class="flex gap-8">
+          <a href="/professor/turma/{{ turma.nome }}" class="btn btn-ghost btn-sm" style="flex:1;justify-content:center;">Ver turma</a>
+          <form method="POST" action="/professor/turmas/excluir/{{ turma.nome }}" onsubmit="return confirm('Excluir {{ turma.nome }}?')">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align:center;padding:60px 20px;color:var(--txt3);">
+    <div style="font-size:56px;margin-bottom:16px;">🏫</div>
+    <p style="font-size:16px;font-weight:600;color:var(--txt2);margin-bottom:6px;">Nenhuma turma ainda</p>
+    <p style="font-size:13px;">Crie sua primeira turma para começar!</p>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Modal criar turma — fora do modal-global para funcionar corretamente -->
+<div id="modal-criar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:440px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;">Nova turma</h3>
+    <form method="POST" action="/professor/turmas/criar">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Nome da turma *</p>
+      <input class="input" type="text" name="nome" placeholder="Ex: Turma A — 2026" required style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Descrição</p>
+      <input class="input" type="text" name="descricao" placeholder="Ex: Turma de alfabetização" style="margin-bottom:16px;">
+      <div class="flex gap-8">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Criar turma</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-criar').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('modal-criar').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+</script>
+{% endblock %}

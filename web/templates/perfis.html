@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Perfis — EducaNorte{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block head %}
+<style>
+  .perfil-card { background: var(--card); border-radius: 14px; padding: 16px; display: flex; align-items: center; gap: 14px; text-decoration: none; cursor: pointer; transition: background .15s, transform .1s; border: 2px solid transparent; margin-bottom: 10px; }
+  .perfil-card:active { transform: scale(.98); }
+  .perfil-card:hover  { border-color: var(--teal); }
+  .perfil-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+  .avatar-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 10px 0 16px; }
+  .avatar-op { width: 44px; height: 44px; border-radius: 50%; background: #1A2E3E; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border: 2px solid transparent; transition: border-color .15s; }
+  .avatar-op.sel { border-color: var(--teal); }
+  .modulo-card { border: 2px solid var(--borda); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all .15s; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+  .modulo-card.sel { border-width: 2px; }
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 500; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.aberto { display: flex; }
+  .modal { background: var(--card); border-radius: 16px; padding: 24px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+  .excluir-btn { background: none; border: none; color: var(--txt3); font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
+  .excluir-btn:hover { color: var(--erro); background: var(--err-bg); }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">🌊</div>
+    <span class="logo-text">EducaNorte</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="main" style="padding-bottom: 24px;">
+
+  <p class="greeting-title" style="margin-bottom: 4px;">Quem vai estudar?</p>
+  <p class="greeting-sub" style="margin-bottom: 20px;">Selecione seu perfil ou crie um novo.</p>
+
+  {% for nome, p in perfis.items() %}
+  {% set me = modulos_ensino.get(p.get('modulo_ensino','fundamental'), modulos_ensino.fundamental) %}
+  <div style="display: flex; align-items: center; gap: 8px;">
+    <a href="/selecionar/{{ nome }}" class="perfil-card" style="flex: 1;">
+      <div class="perfil-avatar" style="background: {{ me.cor }}22;">{{ p.avatar }}</div>
+      <div style="flex: 1;">
+        <div style="font-size: 16px; font-weight: 700; color: var(--branco);">{{ p.nome }}</div>
+        <div style="font-size: 11px; color: var(--txt3); margin-top: 2px;">
+          {{ me.icone }} {{ me.nome }} ·
+          📖 Nv.{{ p.leitura.nivel_atual }} · 🔢 Nv.{{ p.matematica.nivel_atual }}
+          {% if p.conquistas %} · 🏆 {{ p.conquistas | length }}{% endif %}
+        </div>
+      </div>
+      <span style="background: {{ me.cor }}22; color: {{ me.cor }}; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 10px;">Entrar</span>
+    </a>
+    <form method="POST" action="/excluir/{{ nome }}" onsubmit="return confirm('Excluir {{ nome }}?')">
+      <button type="submit" class="excluir-btn">🗑</button>
+    </form>
+  </div>
+  {% endfor %}
+
+  <button class="btn" style="background: var(--card); color: var(--txt2); border: 2px dashed var(--borda); margin-top: 6px;"
+          onclick="document.getElementById('modal-novo').style.display='flex'">
+    ＋  Novo perfil
+  </button>
+
+</div>
+
+<!-- Modal novo perfil -->
+<div id="modal-novo" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div class="modal">
+    <p style="font-size: 16px; font-weight: 700; color: var(--branco); margin-bottom: 16px;">Criar novo perfil</p>
+    <form method="POST" action="/cadastrar">
+      <p style="font-size: 11px; color: var(--txt3); margin-bottom: 6px; font-weight: 700;">NOME</p>
+      <input class="input" type="text" name="nome" placeholder="Seu nome..." autocomplete="off" style="margin-bottom: 14px;">
+
+      <p style="font-size: 11px; color: var(--txt3); margin-bottom: 6px; font-weight: 700;">AVATAR</p>
+      <div class="avatar-grid">
+        {% for av in avatares %}
+        <div class="avatar-op {% if loop.first %}sel{% endif %}" onclick="selAvatar(this,'{{ av }}')">{{ av }}</div>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="avatar" id="av2" value="{{ avatares[0] }}">
+
+      <p style="font-size: 11px; color: var(--txt3); margin-bottom: 8px; font-weight: 700;">TURMA</p>
+      {% for chave, m in modulos_ensino.items() %}
+      <div class="modulo-card {% if loop.first %}sel{% endif %}"
+           id="mc2-{{ chave }}"
+           style="border-color: {% if loop.first %}{{ m.cor }}{% else %}var(--borda){% endif %};"
+           onclick="selModulo2('{{ chave }}','{{ m.cor }}')">
+        <span style="font-size: 20px;">{{ m.icone }}</span>
+        <div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--branco);">{{ m.nome }}</div>
+          <div style="font-size: 11px; color: var(--txt3);">{{ m.desc }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      <input type="hidden" name="modulo_ensino" id="me2" value="{{ modulos_ensino.keys()|list|first }}">
+
+      <div style="display: flex; gap: 8px; margin-top: 16px;">
+        <button class="btn" type="submit" style="flex: 1;">Criar perfil</button>
+        <button type="button" class="btn" style="background: transparent; color: var(--txt2); border: 1px solid var(--borda);"
+                onclick="document.getElementById('modal-novo').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function selAvatar(el, av) {
+  document.querySelectorAll(".avatar-op").forEach(a => a.classList.remove("sel"));
+  el.classList.add("sel");
+  document.getElementById("av2").value = av;
+}
+function selModulo2(chave, cor) {
+  document.querySelectorAll(".modulo-card").forEach(c => {
+    c.classList.remove("sel"); c.style.borderColor = "var(--borda)";
+  });
+  const card = document.getElementById("mc2-" + chave);
+  card.classList.add("sel"); card.style.borderColor = cor;
+  document.getElementById("me2").value = chave;
+}
+document.getElementById("modal-novo").addEventListener("click", function(e) {
+  if (e.target === this) this.style.display = "none";
+});
+</script>
+{% endblock %}

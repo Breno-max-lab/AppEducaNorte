@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+{% block title %}Aprender com Figuras — Assistente Ribeirinho{% endblock %}
+
+{% block head %}
+<style>
+  .ativ-card { background: var(--card); border-radius: 16px; overflow: hidden; margin-bottom: 16px; cursor: pointer; transition: transform 0.1s; text-decoration: none; display: block; }
+  .ativ-card:active { transform: scale(0.97); }
+  .ativ-body { padding: 20px; text-align: center; }
+  .ativ-emoji { font-size: 52px; display: block; margin-bottom: 12px; line-height: 1; }
+  .ativ-titulo { font-size: 18px; font-weight: 700; color: var(--branco); margin-bottom: 4px; }
+  .ativ-desc { font-size: 12px; color: var(--txt3); }
+
+  /* Tela de atividade */
+  .visual-tela { display: none; }
+  .visual-tela.ativa { display: block; }
+  .emoji-grande { font-size: 64px; text-align: center; display: block; margin: 16px 0; line-height: 1.2; }
+  .opcao-visual { background: var(--card); border: 3px solid transparent; border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.15s; flex: 1; }
+  .opcao-visual:active { transform: scale(0.95); }
+  .opcao-visual.correta { border-color: var(--teal); background: var(--teal-bg); }
+  .opcao-visual.errada  { border-color: var(--erro); background: var(--err-bg); }
+  .opcao-emoji { font-size: 48px; display: block; line-height: 1; }
+  .feedback-visual { font-size: 18px; font-weight: 700; text-align: center; padding: 14px; border-radius: 12px; margin: 12px 0; display: none; }
+  .feedback-visual.ok  { background: var(--teal-bg); color: var(--teal); }
+  .feedback-visual.err { background: var(--err-bg); color: var(--erro); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  <!-- Menu de atividades -->
+  <div id="tela-menu">
+    <p class="greeting-title">Aprender com Figuras</p>
+    <p class="greeting-sub">Sem precisar ler — só tocar!</p>
+
+    <div onclick="iniciarAtividade('contagem')" class="ativ-card">
+      <div class="card-acento" style="background: var(--teal);"></div>
+      <div class="ativ-body">
+        <span class="ativ-emoji">🐟</span>
+        <div class="ativ-titulo">Contar</div>
+        <div class="ativ-desc">Quantos você vê?</div>
+      </div>
+    </div>
+
+    <div onclick="iniciarAtividade('identificacao')" class="ativ-card">
+      <div class="card-acento" style="background: var(--laranja);"></div>
+      <div class="ativ-body">
+        <span class="ativ-emoji">🐬</span>
+        <div class="ativ-titulo">Conhecer Animais</div>
+        <div class="ativ-desc">Toque no animal certo</div>
+      </div>
+    </div>
+
+    <div onclick="iniciarAtividade('comparacao')" class="ativ-card">
+      <div class="card-acento" style="background: var(--amarelo);"></div>
+      <div class="ativ-body">
+        <span class="ativ-emoji">⚖️</span>
+        <div class="ativ-titulo">Qual tem mais?</div>
+        <div class="ativ-desc">Toque no maior grupo</div>
+      </div>
+    </div>
+
+    <a href="/" class="btn btn-ghost mt-8">← Voltar</a>
+  </div>
+
+  <!-- Tela de atividade -->
+  <div id="tela-atividade" class="visual-tela">
+    <div class="flex-between" style="margin-bottom: 16px;">
+      <button onclick="voltarMenu()" style="background:none;border:none;color:var(--txt2);font-size:22px;cursor:pointer;">←</button>
+      <span id="ativ-titulo" style="font-size:14px;font-weight:700;color:var(--teal);"></span>
+      <span id="ativ-pts" style="font-size:13px;color:var(--verde);font-weight:700;">✓ 0</span>
+    </div>
+
+    <div class="progress-wrap" style="margin-bottom:16px;">
+      <div class="progress-fill" id="ativ-barra" style="width:0%;background:var(--teal);height:4px;"></div>
+    </div>
+
+    <p id="ativ-pergunta" style="font-size:17px;font-weight:700;color:var(--branco);text-align:center;margin-bottom:8px;"></p>
+    <span id="ativ-visual" class="emoji-grande"></span>
+
+    <div id="ativ-opcoes" style="display:flex;gap:12px;margin:16px 0;"></div>
+
+    <div class="feedback-visual" id="ativ-feedback"></div>
+  </div>
+
+  <!-- Resultado -->
+  <div id="tela-resultado" class="visual-tela" style="text-align:center;padding:32px 0;">
+    <div id="res-estrelas" style="font-size:52px;margin-bottom:12px;"></div>
+    <h2 id="res-msg" style="font-size:22px;font-weight:700;margin-bottom:6px;"></h2>
+    <p id="res-sub" style="color:var(--txt2);margin-bottom:24px;"></p>
+    <button onclick="voltarMenu()" class="btn">← Voltar ao menu</button>
+  </div>
+
+</div>
+
+<script>
+const DADOS = {
+  contagem: {{ contagem | tojson }},
+  identificacao: {{ identificacao | tojson }},
+  comparacao: {{ comparacao | tojson }},
+};
+
+let atividadeAtual = null;
+let perguntas      = [];
+let indice         = 0;
+let acertos        = 0;
+let bloqueado      = false;
+
+function iniciarAtividade(tipo) {
+  atividadeAtual = tipo;
+  indice  = 0;
+  acertos = 0;
+  bloqueado = false;
+
+  // Junta todas as perguntas dos níveis
+  perguntas = [];
+  const niveis = DADOS[tipo];
+  for (const nv of Object.values(niveis)) {
+    perguntas.push(...nv.perguntas);
+  }
+
+  document.getElementById("tela-menu").style.display = "none";
+  document.getElementById("tela-atividade").classList.add("ativa");
+  document.getElementById("tela-resultado").classList.remove("ativa");
+
+  const titulos = { contagem: "🐟 Contar", identificacao: "🐬 Conhecer", comparacao: "⚖️ Comparar" };
+  document.getElementById("ativ-titulo").textContent = titulos[tipo];
+
+  renderPergunta();
+}
+
+function renderPergunta() {
+  if (indice >= perguntas.length) { mostrarResultado(); return; }
+  bloqueado = false;
+  const p = perguntas[indice];
+  const total = perguntas.length;
+  document.getElementById("ativ-barra").style.width = (indice / total * 100) + "%";
+  document.getElementById("ativ-pts").textContent   = "✓ " + acertos;
+  document.getElementById("ativ-feedback").style.display = "none";
+
+  // Pergunta e visual
+  if (atividadeAtual === "contagem") {
+    document.getElementById("ativ-pergunta").textContent = p.instrucao_visual || "Quantos você vê?";
+    document.getElementById("ativ-visual").textContent   = p.visual;
+    renderOpcoes(p.opcoes_visuais, p.opcoes_valores, p.resposta, "valor");
+  } else if (atividadeAtual === "identificacao") {
+    document.getElementById("ativ-pergunta").textContent = p.pergunta_visual;
+    document.getElementById("ativ-visual").textContent   = "";
+    renderOpcoesEmoji(p.opcoes);
+  } else if (atividadeAtual === "comparacao") {
+    document.getElementById("ativ-pergunta").textContent = "Qual grupo tem MAIS?";
+    document.getElementById("ativ-visual").textContent   = "";
+    renderOpcoesComparacao(p.opcoes);
+  }
+}
+
+function renderOpcoes(emojis, valores, resposta, tipo) {
+  const div = document.getElementById("ativ-opcoes");
+  div.innerHTML = "";
+  div.style.justifyContent = "center";
+  emojis.forEach((em, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opcao-visual";
+    btn.style.maxWidth = "90px";
+    btn.innerHTML = `<span class="opcao-emoji">${em}</span>`;
+    btn.onclick = () => responderContagem(btn, valores[i], resposta);
+    div.appendChild(btn);
+  });
+}
+
+function renderOpcoesEmoji(opcoes) {
+  const div = document.getElementById("ativ-opcoes");
+  div.innerHTML = "";
+  div.style.justifyContent = "center";
+  opcoes.forEach(op => {
+    const btn = document.createElement("button");
+    btn.className = "opcao-visual";
+    btn.style.maxWidth = "110px";
+    btn.innerHTML = `<span class="opcao-emoji">${op.emoji}</span>`;
+    btn.onclick = () => responderBool(btn, op.correto,
+      perguntas[indice].voz_acerto, perguntas[indice].voz_erro);
+    div.appendChild(btn);
+  });
+}
+
+function renderOpcoesComparacao(opcoes) {
+  const div = document.getElementById("ativ-opcoes");
+  div.innerHTML = "";
+  div.style.justifyContent = "center";
+  opcoes.forEach(op => {
+    const btn = document.createElement("button");
+    btn.className = "opcao-visual";
+    btn.style.maxWidth = "140px";
+    btn.innerHTML = `<span style="font-size:28px;line-height:1.4;">${op.visual}</span>`;
+    btn.onclick = () => responderBool(btn, op.correto,
+      perguntas[indice].voz_acerto, perguntas[indice].voz_erro);
+    div.appendChild(btn);
+  });
+}
+
+function responderContagem(btn, valor, resposta) {
+  if (bloqueado) return;
+  bloqueado = true;
+  const correto = valor === resposta;
+  responderFeedback(btn, correto,
+    perguntas[indice].voz_acerto, perguntas[indice].voz_erro);
+}
+
+function responderBool(btn, correto, msgOk, msgErr) {
+  if (bloqueado) return;
+  bloqueado = true;
+  responderFeedback(btn, correto, msgOk, msgErr);
+}
+
+function responderFeedback(btn, correto, msgOk, msgErr) {
+  btn.classList.add(correto ? "correta" : "errada");
+  const fb = document.getElementById("ativ-feedback");
+  fb.textContent = correto ? "✅ " + msgOk : "❌ " + msgErr;
+  fb.className   = "feedback-visual " + (correto ? "ok" : "err");
+  fb.style.display = "block";
+  if (correto) acertos++;
+  document.getElementById("ativ-pts").textContent = "✓ " + acertos;
+  setTimeout(() => { indice++; renderPergunta(); }, 1800);
+}
+
+function mostrarResultado() {
+  document.getElementById("tela-atividade").classList.remove("ativa");
+  const tela = document.getElementById("tela-resultado");
+  tela.classList.add("ativa");
+  const total = perguntas.length;
+  const pct   = acertos / total;
+  let estrelas, msg, cor;
+  if (pct >= 0.8) { estrelas = "⭐⭐⭐"; msg = "Excelente!";        cor = "var(--teal)"; }
+  else if (pct >= 0.5) { estrelas = "⭐⭐"; msg = "Bom trabalho!";  cor = "var(--laranja)"; }
+  else { estrelas = "⭐"; msg = "Continue tentando!"; cor = "var(--txt3)"; }
+  document.getElementById("res-estrelas").textContent = estrelas;
+  document.getElementById("res-msg").textContent      = msg;
+  document.getElementById("res-msg").style.color      = cor;
+  document.getElementById("res-sub").textContent      = `${acertos} de ${total} corretas`;
+}
+
+function voltarMenu() {
+  document.getElementById("tela-menu").style.display = "block";
+  document.getElementById("tela-atividade").classList.remove("ativa");
+  document.getElementById("tela-resultado").classList.remove("ativa");
+}
+</script>
+{% endblock %}

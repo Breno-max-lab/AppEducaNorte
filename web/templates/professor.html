@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}Painel do Professor — Assistente Ribeirinho{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block head %}
+<style>
+  .prof-topbar { background: #120820; border-bottom: 1px solid #2A1A4A; padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; }
+  .aluno-row { background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; text-decoration: none; transition: background 0.15s; cursor: pointer; }
+  .aluno-row:hover { background: var(--card-h); }
+  .aluno-avatar { width: 44px; height: 44px; border-radius: 50%; background: #1A0D2A; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .aluno-info { flex: 1; min-width: 0; }
+  .aluno-nome { font-size: 14px; font-weight: 700; color: var(--branco); margin-bottom: 4px; }
+  .aluno-sub { font-size: 11px; color: var(--txt3); }
+  .mini-bars { display: flex; gap: 3px; align-items: flex-end; height: 20px; }
+  .mini-bar { width: 8px; border-radius: 2px; background: #1A2E3E; }
+  .pct-badge { font-size: 13px; font-weight: 700; min-width: 40px; text-align: right; }
+  .stat-card { background: var(--card); border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--branco); }
+  .stat-lbl { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+  .modulo-header { font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin: 20px 0 10px; }
+  .sem-alunos { text-align: center; padding: 48px 24px; color: var(--txt3); }
+</style>
+{% endblock %}
+
+{% block topbar %}
+<div class="prof-topbar">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <div style="width: 30px; height: 30px; background: #9B72CF; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">👩‍🏫</div>
+    <span style="font-size: 14px; font-weight: 700; color: var(--branco);">Painel do Professor</span>
+  </div>
+  <div style="display: flex; gap: 12px; align-items: center;">
+    <a href="/" style="font-size: 12px; color: var(--txt3); text-decoration: none;">← App</a>
+    <a href="/professor/logout" style="font-size: 12px; color: var(--erro); text-decoration: none;">Sair</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto; padding: 20px 16px 40px;">
+
+  <!-- Resumo geral -->
+  {% set total_alunos = alunos | length %}
+  {% set total_acertos = alunos | sum(attribute='stats.total_acertos') %}
+  {% set media_apr = (alunos | sum(attribute='stats.aproveitamento') / total_alunos) | int if total_alunos > 0 else 0 %}
+
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 12px;">📊 VISÃO GERAL DA TURMA</p>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;">
+    <div class="stat-card">
+      <div class="stat-num" style="color: #9B72CF;">{{ total_alunos }}</div>
+      <div class="stat-lbl">Alunos</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--teal);">{{ total_acertos }}</div>
+      <div class="stat-lbl">Acertos totais</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--amarelo);">{{ media_apr }}%</div>
+      <div class="stat-lbl">Média geral</div>
+    </div>
+  </div>
+
+  <!-- Lista de alunos -->
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 12px;">👥 ALUNOS ({{ total_alunos }})</p>
+
+  {% if alunos %}
+    {% for aluno in alunos %}
+    {% set pct = aluno.stats.aproveitamento %}
+    {% set cor = "#4ADE80" if pct >= 70 else ("#F4A261" if pct >= 40 else "#E76F51") %}
+    <a href="/professor/aluno/{{ aluno.nome }}" class="aluno-row">
+      <div class="aluno-avatar">{{ aluno.avatar }}</div>
+      <div class="aluno-info">
+        <div class="aluno-nome">{{ aluno.nome }}</div>
+        <div class="aluno-sub">
+          {{ aluno.stats.modulos_iniciados }} módulo(s) iniciado(s)
+          · {{ aluno.stats.total_acertos }} acertos
+          · {{ aluno.stats.conquistas }} conquista(s)
+        </div>
+        <!-- Mini barras por módulo -->
+        <div class="mini-bars" style="margin-top: 6px;">
+          {% for chave, (nome_mod, total_niveis) in modulos.items() %}
+          {% set d = aluno.perfil.get(chave, {}) %}
+          {% set h = ((d.get('nivel_atual', 1) - 1) / total_niveis * 100) | int %}
+          {% set bc = "#00C9A7" if chave == "leitura" else ("#F4A261" if chave == "matematica" else ("#4ADE80" if chave == "ambiental" else ("#F87171" if chave == "saude" else "#9B72CF"))) %}
+          <div class="mini-bar" style="height: {{ [h, 4] | max }}%; background: {{ bc if h > 0 else '#1A2E3E' }};"></div>
+          {% endfor %}
+        </div>
+      </div>
+      <div>
+        <div class="pct-badge" style="color: {{ cor }};">{{ pct }}%</div>
+        <div style="font-size: 10px; color: var(--txt3); text-align: right; margin-top: 2px;">→</div>
+      </div>
+    </a>
+    {% endfor %}
+  {% else %}
+    <div class="sem-alunos">
+      <div style="font-size: 48px; margin-bottom: 12px;">👥</div>
+      <p style="font-size: 15px; font-weight: 600; color: var(--txt2);">Nenhum aluno cadastrado ainda</p>
+      <p style="font-size: 13px; margin-top: 4px;">Os alunos aparecerão aqui após criar seus perfis no app.</p>
+    </div>
+  {% endif %}
+
+  <!-- Legenda módulos -->
+  <p class="modulo-header">📚 LEGENDA DOS MÓDULOS</p>
+  <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+    {% for chave, (nome_mod, _) in modulos.items() %}
+    {% set bc = "#00C9A7" if chave == "leitura" else ("#F4A261" if chave == "matematica" else ("#4ADE80" if chave == "ambiental" else ("#F87171" if chave == "saude" else "#9B72CF"))) %}
+    <span style="font-size: 11px; padding: 4px 10px; border-radius: 6px; background: var(--card); color: var(--txt2);">
+      <span style="display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: {{ bc }}; margin-right: 4px;"></span>{{ nome_mod }}
+    </span>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

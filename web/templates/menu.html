@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}Início — Assistente Ribeirinho{% endblock %}
+{% block nav_inicio %}active{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-icon">🌊</div>
+    <span class="logo-text">Assistente Ribeirinho</span>
+  </div>
+  <div style="display: flex; align-items: center; gap: 8px;">
+    {% if progresso.conquistas %}
+    <span style="font-size: 12px; color: var(--amarelo);">🏆 {{ progresso.conquistas | length }}</span>
+    {% endif %}
+    <a href="/perfis" style="display: flex; align-items: center; gap: 8px; background: #1A2E3E; border-radius: 20px; padding: 5px 12px; text-decoration: none;">
+      <div style="width: 24px; height: 24px; border-radius: 50%; background: var(--teal); display: flex; align-items: center; justify-content: center; font-size: 14px;">{{ progresso.avatar }}</div>
+      <span style="font-size: 12px; color: var(--txt2);">{{ progresso.nome }}</span>
+    </a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="main">
+
+  {% if hora < 12 %}{% set saudacao = "Bom dia" %}
+  {% elif hora < 18 %}{% set saudacao = "Boa tarde" %}
+  {% else %}{% set saudacao = "Boa noite" %}{% endif %}
+
+  <p class="greeting-title">{{ saudacao }}, {{ progresso.nome }}!</p>
+  <p class="greeting-sub" style="margin-bottom: 16px;">O que vamos explorar hoje?</p>
+
+  <!-- Seção: Aprender -->
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px;">📚 APRENDER</p>
+  <div class="cards-grid" style="margin-bottom: 16px;">
+
+    <a href="/licao/leitura" class="card">
+      <div class="card-acento" style="background: var(--teal);"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: var(--teal-bg);">📖</div>
+        <div class="card-title">Leitura</div>
+        <div class="card-desc">Vogais, sílabas e compreensão</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: {{ [(progresso.leitura.nivel_atual - 1) / 5 * 100, 100] | min | int }}%; background: var(--teal);"></div>
+        </div>
+        <span class="badge" style="background: var(--teal-bg); color: var(--teal);">Nível {{ progresso.leitura.nivel_atual }}</span>
+      </div>
+    </a>
+
+    <a href="/licao/matematica" class="card">
+      <div class="card-acento" style="background: var(--laranja);"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: var(--lrj-bg);">🔢</div>
+        <div class="card-title">Matemática</div>
+        <div class="card-desc">Contagem, números e problemas</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: {{ [(progresso.matematica.nivel_atual - 1) / 5 * 100, 100] | min | int }}%; background: var(--laranja);"></div>
+        </div>
+        <span class="badge" style="background: var(--lrj-bg); color: var(--laranja);">Nível {{ progresso.matematica.nivel_atual }}</span>
+      </div>
+    </a>
+
+    <a href="/licao/ambiental" class="card">
+      <div class="card-acento" style="background: #4ADE80;"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: var(--vrd-bg);">🌿</div>
+        <div class="card-title">Meio Ambiente</div>
+        <div class="card-desc">Rio, floresta e sustentabilidade</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: {{ [(progresso.ambiental.nivel_atual - 1) / 5 * 100, 100] | min | int }}%; background: #4ADE80;"></div>
+        </div>
+        <span class="badge" style="background: var(--vrd-bg); color: #4ADE80;">Nível {{ progresso.ambiental.nivel_atual }}</span>
+      </div>
+    </a>
+
+    <a href="/licao/saude" class="card">
+      <div class="card-acento" style="background: #F87171;"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: #2A0A0A;">🏥</div>
+        <div class="card-title">Saúde</div>
+        <div class="card-desc">Higiene, doenças e bem-estar</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: {{ [(progresso.saude.nivel_atual - 1) / 5 * 100, 100] | min | int }}%; background: #F87171;"></div>
+        </div>
+        <span class="badge" style="background: #2A0A0A; color: #F87171;">Nível {{ progresso.saude.nivel_atual }}</span>
+      </div>
+    </a>
+
+    <a href="/licao/cultura" class="card">
+      <div class="card-acento" style="background: var(--roxo);"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: var(--rxo-bg);">🎭</div>
+        <div class="card-title">Cultura</div>
+        <div class="card-desc">Lendas, festas e tradições</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: {{ [(progresso.cultura.nivel_atual - 1) / 5 * 100, 100] | min | int }}%; background: var(--roxo);"></div>
+        </div>
+        <span class="badge" style="background: var(--rxo-bg); color: var(--roxo);">Nível {{ progresso.cultura.nivel_atual }}</span>
+      </div>
+    </a>
+
+    <a href="/visual" class="card">
+      <div class="card-acento" style="background: var(--amarelo);"></div>
+      <div class="card-body">
+        <div class="card-icon" style="background: var(--aml-bg);">🖼️</div>
+        <div class="card-title">Com Figuras</div>
+        <div class="card-desc">Para quem ainda não lê</div>
+        <div class="progress-wrap">
+          <div class="progress-fill" style="width: 5%; background: var(--amarelo);"></div>
+        </div>
+        <span class="badge" style="background: var(--aml-bg); color: var(--amarelo);">Atividade</span>
+      </div>
+    </a>
+
+    <a href="/exercicio-ia" class="card">
+  <div class="card-acento" style="background:#A78BFA;"></div>
+  <div class="card-body">
+    <div class="card-icon" style="background:#1A0A2E;">🤖</div>
+    <div class="card-title">Exercício com IA</div>
+    <div class="card-desc">Perguntas geradas automaticamente</div>
+  </div>
+</a>
+
+<a href="/chatbot" class="card">
+  <div class="card-acento" style="background:#00C9A7;"></div>
+  <div class="card-body">
+    <div class="card-icon" style="background:#0E2A2A;">💬</div>
+    <div class="card-title">Perguntar à IA</div>
+    <div class="card-desc">Converse e tire dúvidas</div>
+  </div>
+</a>
+
+  </div>
+
+  <!-- Seção: Progresso -->
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px;">📊 ACOMPANHAR</p>
+  <a href="/progresso" class="card" style="margin-bottom: 16px;">
+    <div class="card-acento" style="background: #7ABFCC;"></div>
+    <div class="card-body" style="display: flex; align-items: center; gap: 14px;">
+      <div class="card-icon" style="background: #0E1E2A; margin-bottom: 0; flex-shrink: 0;">📊</div>
+      <div>
+        <div class="card-title">Meu Progresso</div>
+        <div class="card-desc">Veja acertos, níveis e conquistas</div>
+      </div>
+      {% if progresso.conquistas %}
+      <span class="badge" style="background: var(--aml-bg); color: var(--amarelo); margin-left: auto;">🏆 {{ progresso.conquistas | length }}</span>
+      {% endif %}
+    </div>
+  </a>
+
+  <!-- Conquistas -->
+  {% if progresso.conquistas %}
+  <div style="background: var(--card); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;">
+    <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px;">🏆 CONQUISTAS</p>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+      {% for c in progresso.conquistas %}
+      <span style="background: var(--aml-bg); color: var(--amarelo); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px;">{{ c }}</span>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Atividades pendentes do professor -->
+  {% if atividades %}
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px;">📋 ATIVIDADES</p>
+  {% for at in atividades %}
+  {% set info = modulos_info.get(at.modulo, ('Módulo','📖','#00C9A7',5)) %}
+  <div style="background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 10px; display: flex;">
+    <div style="width: 4px; background: {% if at.concluida %}var(--verde){% else %}{{ info[2] }}{% endif %}; flex-shrink: 0;"></div>
+    <div style="padding: 12px 14px; flex: 1;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span style="font-size: 14px; font-weight: 700; color: var(--branco);">{{ at.titulo }}</span>
+        {% if at.concluida %}
+        <span style="font-size: 10px; font-weight: 700; background: var(--vrd-bg); color: var(--verde); padding: 2px 8px; border-radius: 10px;">✓ Concluída</span>
+        {% else %}
+        <span style="font-size: 10px; font-weight: 700; background: {{ info[2] }}22; color: {{ info[2] }}; padding: 2px 8px; border-radius: 10px;">Pendente</span>
+        {% endif %}
+      </div>
+      <div style="font-size: 11px; color: var(--txt3);">
+        {{ info[0] }} · Atingir nível {{ at.nivel_min }}
+        {% if at.prazo %} · Prazo: {{ at.prazo }}{% endif %}
+      </div>
+      {% if at.instrucoes %}
+      <div style="font-size: 12px; color: var(--txt2); margin-top: 4px;">{{ at.instrucoes }}</div>
+      {% endif %}
+      {% if not at.concluida %}
+      <a href="/licao/{{ at.modulo }}" style="display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 700; color: {{ info[2] }}; text-decoration: none;">Ir para a atividade →</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Avisos do professor -->
+  {% if avisos %}
+  <p style="font-size: 10px; font-weight: 700; color: var(--txt3); letter-spacing: 0.08em; margin-bottom: 10px; margin-top: 4px;">📢 AVISOS DO PROFESSOR</p>
+  {% for av in avisos %}
+  <div style="background: var(--card); border-left: 3px solid var(--roxo); border-radius: 0 10px 10px 0; padding: 12px 14px; margin-bottom: 10px;">
+    <div style="font-size: 13px; font-weight: 700; color: var(--branco); margin-bottom: 3px;">{{ av.titulo }}</div>
+    <div style="font-size: 11px; color: var(--txt3); margin-bottom: 6px;">{{ av.data[:10] }}</div>
+    <div style="font-size: 13px; color: var(--txt2); line-height: 1.5;">{{ av.texto }}</div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+</div>
+{% endblock %}

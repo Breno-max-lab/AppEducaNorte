@@ -1,0 +1,220 @@
+{% extends "prof_base.html" %}
+{% block title %}{{ nome_turma }}{% endblock %}
+
+{% block content %}
+
+<!-- Cabeçalho da turma -->
+<div style="background:{{ cor }}18;border:1px solid {{ cor }}44;border-radius:14px;padding:20px;margin-bottom:24px;">
+  <div class="flex justify-between items-center">
+    <div>
+      <div style="font-size:22px;font-weight:700;color:{{ cor }};">{{ nome_turma }}</div>
+      <div style="font-size:13px;color:var(--txt3);margin-top:2px;">{{ turma.descricao or 'Sem descrição' }}</div>
+    </div>
+    <span style="background:{{ cor }}22;color:{{ cor }};font-size:12px;font-weight:700;padding:4px 12px;border-radius:10px;">{{ turma.codigo }}</span>
+  </div>
+  <div class="flex gap-12 mt-16">
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-aviso').style.display='flex'">📢 Enviar aviso</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-atividade').style.display='flex'">📋 Criar atividade</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-aluno').style.display='flex'">👤 Adicionar aluno</button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div style="display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--borda);padding-bottom:0;">
+  {% for tab_id, tab_label in [('alunos','👥 Alunos'),('avisos','📢 Avisos'),('atividades','📋 Atividades')] %}
+  <button onclick="mostrarTab('{{ tab_id }}')" id="tab-btn-{{ tab_id }}"
+    style="padding:8px 16px;background:transparent;border:none;font-size:13px;cursor:pointer;border-bottom:2px solid {% if loop.first %}{{ cor }}{% else %}transparent{% endif %};color:{% if loop.first %}{{ cor }}{% else %}var(--txt3){% endif %};font-weight:{% if loop.first %}700{% else %}400{% endif %};">
+    {{ tab_label }} <span style="font-size:11px;">({% if tab_id=='alunos' %}{{ alunos|length }}{% elif tab_id=='avisos' %}{{ avisos|length }}{% else %}{{ atividades|length }}{% endif %})</span>
+  </button>
+  {% endfor %}
+</div>
+
+<!-- Tab Alunos -->
+<div id="tab-alunos">
+  {% if alunos %}
+  <table class="tabela">
+    <thead>
+      <tr>
+        <th>Aluno</th>
+        <th>Aproveitamento</th>
+        <th>Acertos</th>
+        <th>Módulos</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in alunos %}
+      {% set pct = a.stats.aproveitamento %}
+      {% set cor_pct = '#4ADE80' if pct >= 70 else ('#F4A261' if pct >= 40 else '#E76F51') %}
+      <tr>
+        <td>
+          <div class="flex items-center gap-8">
+            <div style="width:32px;height:32px;border-radius:50%;background:#1A2E3E;display:flex;align-items:center;justify-content:center;font-size:16px;">{{ a.avatar }}</div>
+            <a href="/professor/aluno/{{ a.nome }}" style="color:var(--branco);text-decoration:none;font-weight:600;">{{ a.nome }}</a>
+          </div>
+        </td>
+        <td>
+          <div class="flex items-center gap-8">
+            <div class="bar-wrap" style="width:80px;">
+              <div class="bar-fill" style="width:{{ pct }}%;background:{{ cor_pct }};"></div>
+            </div>
+            <span style="color:{{ cor_pct }};font-weight:700;">{{ pct }}%</span>
+          </div>
+        </td>
+        <td style="color:var(--teal);">{{ a.stats.total_acertos }}</td>
+        <td>{{ a.stats.modulos_iniciados }}/5</td>
+        <td>
+          <form method="POST" action="/professor/turmas/remover_aluno" style="display:inline;">
+            <input type="hidden" name="turma" value="{{ nome_turma }}">
+            <input type="hidden" name="aluno" value="{{ a.nome }}">
+            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Remover {{ a.nome }} desta turma?')">Remover</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div style="text-align:center;padding:40px;color:var(--txt3);">Nenhum aluno nesta turma ainda.</div>
+  {% endif %}
+</div>
+
+<!-- Tab Avisos -->
+<div id="tab-avisos" style="display:none;">
+  {% if avisos %}
+    {% for av in avisos | sort(attribute='data', reverse=True) %}
+    <div class="aviso-card">
+      <div class="flex justify-between items-center mb-8">
+        <div class="aviso-titulo">{{ av.titulo }}</div>
+        <form method="POST" action="/professor/avisos/excluir/{{ av.id }}">
+          <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+        </form>
+      </div>
+      <div class="aviso-meta">{{ av.data[:16] }}</div>
+      <div class="aviso-texto">{{ av.texto }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align:center;padding:40px;color:var(--txt3);">Nenhum aviso enviado ainda.</div>
+  {% endif %}
+</div>
+
+<!-- Tab Atividades -->
+<div id="tab-atividades" style="display:none;">
+  {% if atividades %}
+    {% for at in atividades | sort(attribute='criada_em', reverse=True) %}
+    {% set info = modulos.get(at.modulo, ('Módulo','📖','#00C9A7',5)) %}
+    <div class="ativ-card">
+      <div class="ativ-lateral" style="background:{{ info[2] }};"></div>
+      <div class="ativ-body">
+        <div class="flex justify-between items-center">
+          <div class="ativ-titulo">{{ at.titulo }}</div>
+          <form method="POST" action="/professor/atividades/excluir/{{ at.id }}">
+            <button type="submit" class="btn btn-danger btn-sm">🗑</button>
+          </form>
+        </div>
+        <div class="ativ-meta">
+          {{ info[0] }} · 
+          {% if at.prazo %}Prazo: {{ at.prazo }}{% else %}Sem prazo{% endif %} ·
+          {{ at.get('concluidos', 0) }}/{{ at.get('total_alunos', 0) }} concluídos
+        </div>
+        {% if at.instrucoes %}
+        <div style="font-size:12px;color:var(--txt2);margin-top:6px;">{{ at.instrucoes }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div style="text-align:center;padding:40px;color:var(--txt3);">Nenhuma atividade criada ainda.</div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Modais fora do modal-global para funcionarem corretamente -->
+<div id="modal-aviso" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:440px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;">📢 Enviar aviso</h3>
+    <form method="POST" action="/professor/avisos/criar">
+      <input type="hidden" name="turma" value="{{ nome_turma }}">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Título *</p>
+      <input class="input" type="text" name="titulo" placeholder="Título do aviso" required style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Mensagem *</p>
+      <textarea class="input" name="texto" rows="4" placeholder="Escreva o aviso..." required style="resize:vertical;margin-bottom:16px;"></textarea>
+      <div class="flex gap-8">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Enviar</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-aviso').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-atividade" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:440px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;">📋 Criar atividade</h3>
+    <form method="POST" action="/professor/atividades/criar">
+      <input type="hidden" name="turma" value="{{ nome_turma }}">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Título *</p>
+      <input class="input" type="text" name="titulo" placeholder="Nome da atividade" required style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Módulo *</p>
+      <select class="input" name="modulo" required style="margin-bottom:12px;">
+        <option value="">Selecionar módulo...</option>
+        {% for chave, (nome_mod, icone, cor, _) in modulos.items() %}
+        <option value="{{ chave }}">{{ icone }} {{ nome_mod }}</option>
+        {% endfor %}
+      </select>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Nível mínimo</p>
+      <select class="input" name="nivel_min" style="margin-bottom:12px;">
+        {% for n in range(1,6) %}<option value="{{ n }}">Nível {{ n }}</option>{% endfor %}
+      </select>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Prazo (opcional)</p>
+      <input class="input" type="date" name="prazo" style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Instruções (opcional)</p>
+      <textarea class="input" name="instrucoes" rows="2" style="resize:vertical;margin-bottom:16px;"></textarea>
+      <div class="flex gap-8">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Criar atividade</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-atividade').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-aluno" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--card);border-radius:16px;padding:24px;width:100%;max-width:440px;">
+    <h3 style="font-size:16px;font-weight:700;color:var(--branco);margin-bottom:16px;">👤 Adicionar aluno</h3>
+    <form method="POST" action="/professor/turmas/adicionar_aluno">
+      <input type="hidden" name="turma" value="{{ nome_turma }}">
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:6px;">Selecionar aluno:</p>
+      <select class="input" name="aluno" required style="margin-bottom:16px;">
+        <option value="">Escolha um aluno...</option>
+        {% for a in alunos_disponiveis | default([]) %}
+        <option value="{{ a }}">{{ a }}</option>
+        {% endfor %}
+      </select>
+      <div class="flex gap-8">
+        <button class="btn btn-primary" type="submit" style="flex:1;">Adicionar</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('modal-aluno').style.display='none'">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const COR = "{{ cor }}";
+function mostrarTab(tab) {
+  ['alunos','avisos','atividades'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+    const btn = document.getElementById('tab-btn-'+t);
+    btn.style.borderBottomColor = t===tab ? COR : 'transparent';
+    btn.style.color = t===tab ? COR : 'var(--txt3)';
+    btn.style.fontWeight = t===tab ? '700' : '400';
+  });
+}
+['modal-aviso','modal-atividade','modal-aluno'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) {
+    if (e.target === this) this.style.display = 'none';
+  });
+});
+</script>
+{% endblock %}
