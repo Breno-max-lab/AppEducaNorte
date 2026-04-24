@@ -3,13 +3,10 @@ Servidor Web — EducaNorte / Assistente Ribeirinho
 Correções: Waitress, rota IA, rota turmas, visual.html, perfil incompleto.
 """
 
-from ast import main
 import json, os, sys, socket, hashlib
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, session, redirect
 
-import streamlit as st
-st.title("Teste de Conexão: O App está vivo!")
 
 _ROOT   = os.path.dirname(os.path.abspath(__file__))
 _PARENT = os.path.abspath(os.path.join(_ROOT, ".."))
@@ -1114,9 +1111,7 @@ def professor_stats():
     if not professor_logado(): return jsonify({"erro": "não autorizado"}), 401
     perfis = carregar_perfis()
     return jsonify([{"nome": n, **calcular_stats_aluno(p)} for n, p in perfis.items()])
-
-if __name__ == "__main__":
-    main()
+#
 # ─────────────────────────────────────────────
 # QR Code + inicialização com Waitress
 # ─────────────────────────────────────────────
