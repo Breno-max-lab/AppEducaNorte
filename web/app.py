@@ -686,11 +686,6 @@ def finalizar():
     salvar_perfil_ativo(p)
     return jsonify({"avancou": avancou, "novo_nivel": p[area]["nivel_atual"], "novas_conquistas": novas})
 
-
-# ─────────────────────────────────────────────
-# Rotas — IA generativa (CORRIGIDO)
-# ─────────────────────────────────────────────
-
 # ─────────────────────────────────────────────
 # Rotas — IA generativa + Chatbot
 # ─────────────────────────────────────────────
@@ -1121,46 +1116,46 @@ def professor_stats():
 # QR Code + inicialização com Waitress
 # ─────────────────────────────────────────────
 
-def get_ip():
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]; s.close(); return ip
-    except Exception:
-        return "127.0.0.1"
-
-def gerar_qr_terminal(url):
-    try:
-        import qrcode
-        qr = qrcode.QRCode(border=1)
-        qr.add_data(url); qr.make(fit=True)
-        print("\n  📱 Escaneie o QR Code com o celular:\n")
-        qr.print_ascii(invert=True); print()
-    except ImportError:
-        print(f"\n  📱 Acesse no celular: {url}")
-        print("  (Para QR Code: pip install qrcode[pil])\n")
-
-if __name__ == "__main__":
-    ip  = get_ip()
-    url = f"http://{ip}:5000"
-    print("\n  🌊 EducaNorte — Servidor Web")
-    print("  ─────────────────────────────────────────")
-    print(f"  💻 No seu PC:   http://localhost:5000")
-    print(f"  📱 No celular:  {url}")
-    print(f"  👩‍🏫 Professor:   http://localhost:5000/professor")
-    print(f"  🤖 IA:          http://localhost:5000/ia")
-    print("  ─────────────────────────────────────────")
-    gerar_qr_terminal(url)
-    print("  Para parar: Ctrl+C\n")
-    srv  = CONFIG.get("servidor", {})
-    host    = srv.get("host", "0.0.0.0")
-    porta   = srv.get("porta", 5000)
-    threads = srv.get("threads", 8)
-    try:
-        from waitress import serve
-        print(f"  ✅ Servidor Waitress iniciado (robusto, multi-conexão)\n")
-        serve(app, host=host, port=porta, threads=threads)
-    except ImportError:
-        print("  ⚠️  Waitress não instalado. Rode: pip install waitress")
-        print("  Usando servidor Flask (menos estável)...\n")
-        app.run(host=host, port=porta, debug=False)
+#def get_ip():
+    #try:
+        #s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #s.connect(("8.8.8.8", 80))
+        #ip = s.getsockname()[0]; s.close(); return ip
+    #except Exception:
+        #return "127.0.0.1"
+#
+#def gerar_qr_terminal(url):
+    #try:
+        #import qrcode
+        #qr = qrcode.QRCode(border=1)
+        #qr.add_data(url); qr.make(fit=True)
+        #print("\n  📱 Escaneie o QR Code com o celular:\n")
+        #qr.print_ascii(invert=True); print()
+    #except ImportError:
+        #print(f"\n  📱 Acesse no celular: {url}")
+        #print("  (Para QR Code: pip install qrcode[pil])\n")
+#
+#if __name__ == "__main__":
+    #ip  = get_ip()
+    #url = f"http://{ip}:5000"
+    #print("\n  🌊 EducaNorte — Servidor Web")
+    #print("  ─────────────────────────────────────────")
+    #print(f"  💻 No seu PC:   http://localhost:5000")
+    #print(f"  📱 No celular:  {url}")
+    #print(f"  👩‍🏫 Professor:   http://localhost:5000/professor")
+    #print(f"  🤖 IA:          http://localhost:5000/ia")
+    #print("  ─────────────────────────────────────────")
+    #gerar_qr_terminal(url)
+    #print("  Para parar: Ctrl+C\n")
+    #srv  = CONFIG.get("servidor", {})
+    #host    = srv.get("host", "0.0.0.0")
+    #porta   = srv.get("porta", 5000)
+    #threads = srv.get("threads", 8)
+    #try:
+        #from waitress import serve
+        #print(f"  ✅ Servidor Waitress iniciado (robusto, multi-conexão)\n")
+        #serve(app, host=host, port=porta, threads=threads)
+    #except ImportError:
+        #print("  ⚠️  Waitress não instalado. Rode: pip install waitress")
+        #print("  Usando servidor Flask (menos estável)...\n")
+        #app.run(host=host, port=porta, debug=False)
